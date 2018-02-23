@@ -1,8 +1,8 @@
 # GoBoy
 GameBoy Emulator
 
-http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf
+Documents:
 
-file:///Users/mukundkidambi/Downloads/PyBoy.pdf
+http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf
 
 http://openmymind.net/assets/go/go.pdf
