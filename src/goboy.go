@@ -5,5 +5,3 @@ type GameBoy struct{
     vram [8 * 1024]uint8
 }
 
-func main(){
-}
