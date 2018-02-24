@@ -1,0 +1,5 @@
+dist: trusty
+language: go
+compiler: go
+before_script:
+script: make test
