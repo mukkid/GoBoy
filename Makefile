@@ -12,6 +12,7 @@ all:
 .PHONY: test
 test: all
 	go test ./test
+	go test -v ./src/goboy
 
 .PHONY: clean
 clean:

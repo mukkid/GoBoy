@@ -76,7 +76,7 @@ func (r *Register) get8Reg(id Reg8ID) uint8 {
 func (r *Register) set8Reg(id Reg8ID, value uint8) {
     if id == A {  //Seperate logic because A and F are special snowflakes
         r.regs[5] &= 0x00ff
-        r.regs[5] |= uint16(value << 8)
+        r.regs[5] |= uint16(value) << 8
         return
     } else if id == F {
         r.regs[5] &= 0xff00
@@ -87,7 +87,7 @@ func (r *Register) set8Reg(id Reg8ID, value uint8) {
     end := id % 2
     if end == 0 {
         r.regs[block] &= 0x00ff
-        r.regs[block] |= uint16(value << 8)
+        r.regs[block] |= uint16(value) << 8
     } else {
         r.regs[block] &= 0xff00
         r.regs[block] |= uint16(value)
