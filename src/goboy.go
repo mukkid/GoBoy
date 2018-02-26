@@ -60,9 +60,9 @@ func (r *Register) set16Reg(id Reg16ID, value uint16) {
 }
 
 func (r *Register) get8Reg(id Reg8ID) uint8 {
-    if id == 0x07 {  // Seperate logic because A and F are special snowflakes
+    if id == A {  // Seperate logic because A and F are special snowflakes
         return uint8(r.regs[5] >> 8)
-    } else if id == 0x06 {
+    } else if id == F {
         return uint8(r.regs[5])
     }
     block := id / 2  // block is the index of the 16bit version
@@ -75,11 +75,11 @@ func (r *Register) get8Reg(id Reg8ID) uint8 {
 }
 
 func (r *Register) set8Reg(id Reg8ID, value uint8) {
-    if id == 0x07 {  //Seperate logic because A and F are special snowflakes
+    if id == A {  //Seperate logic because A and F are special snowflakes
         r.regs[5] &= 0x00ff
         r.regs[5] |= uint16(value << 8)
         return
-    } else if id == 0x06 {
+    } else if id == F {
         r.regs[5] &= 0xff00
         r.regs[5] |= uint16(value)
         return
