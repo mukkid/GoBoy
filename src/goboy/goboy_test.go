@@ -32,3 +32,19 @@ func TestSet8Reg(t *testing.T) {
         t.Fatal()
     }
 }
+
+func TestIncrementPc(t *testing.T) {
+    regs := &Register{}
+    regs.incrementPc(1)
+    if regs.get16Reg(PC) != 0x0001 {
+        t.Fatal()
+    }
+    regs.incrementPc(3)
+    if regs.get16Reg(PC) != 0x0004 {
+        t.Fatal()
+    }
+    regs.incrementPc(-2)
+    if regs.get16Reg(PC) != 0x0002 {
+        t.Fatal()
+    }
+}
