@@ -17,7 +17,7 @@ const (
     E Reg8ID = 0x03
     H Reg8ID = 0x04
     L Reg8ID = 0x05
-    F Reg8ID = 0x06
+    F Reg8ID = 0x06  // NOTE: it's not confirmed that 0x06 is actually the register code for F
     A Reg8ID = 0x07
 )
 
