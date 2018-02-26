@@ -4,6 +4,7 @@ package GoBoy
 
 type GameBoy struct {
     mainMemory GBMem
+    *Register
 }
 
 type Reg8ID int
@@ -92,4 +93,8 @@ func (r *Register) set8Reg(id Reg8ID, value uint8) {
         r.regs[block] &= 0xff00
         r.regs[block] |= uint16(value)
     }
+}
+
+func (r *Register) incrementPc(val int) {
+    r.set16Reg(PC, r.get16Reg(PC) + uint16(val))
 }
