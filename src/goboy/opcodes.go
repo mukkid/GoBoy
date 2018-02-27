@@ -17,7 +17,6 @@ func (gb *GameBoy) LD_r_n(ins uint16) {
 }
 
 // Load r <- (HL)
-// TODO: Write unit test
 func (gb *GameBoy) LD_r_hl(ins uint8) {
     r := Reg8ID((ins & 0x38) >> 3)
     address := gb.get16Reg(HL)
