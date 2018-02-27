@@ -8,6 +8,7 @@ OBJECTS 	:= $(patsubst $(BASE)/%.go,$(OBJ)/%.o, $(SRCFILES))
 
 all:
 	go install ./src/goboy
+	go get "github.com/stretchr/testify/assert"
 
 .PHONY: test
 test: all
