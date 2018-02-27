@@ -3,7 +3,8 @@ package GoBoy
 type GBMem struct {
     mram [8 * 1024]uint8
     vram [8 * 1024]uint8
-    rom_nonswitch [16 * 1024] uint8
+    /* ROM bank 0, nonswitchable - I believe this means this bank is static */
+    rom0 [16 * 1024] uint8
     cartridge GBCartridge
 }
 
@@ -48,32 +49,23 @@ const (
     GBCartridgeHuC1RAMBattery
 )
 
-/* 
+/*
  * ROM Size
  * 0x0148 indicates the size of ROM, computed as 32KB << n
  * Or 0x8000 < n bytes
  */
-
-/* Interface for the different */
-type GBCartridge interface {
-    read(addr uint16) uint8
-    write(addr uint16, data uint8)
-    /* TODO: add more control methods if applicable */
-}
-
 func (m *GBMem) read(addr uint16) uint8 {
     if (addr >= 0x0000 && addr < 0x4000) {
         /* non-switchable ROM Bank */
-        return uint8(0x00)
+        return m.rom0[addr]
     } else if (addr >= 0x4000 && addr < 0x8000) {
-        /* switchable ROM Bank */
-        return uint8(0x00)
+        return m.cartridge.readROM(addr)
     } else if (addr >= 0x8000 && addr < 0xa000) {
         /* VRAM */
         return uint8(0x00)
     } else if (addr >= 0xa000 && addr < 0xc000) {
         /* SRAM External RAM in cartridge, often battery buffered */
-        return uint8(0x00)
+        return m.cartridge.readRAM(addr)
     } else if (addr >= 0xc000 && addr < 0xd000) {
         /* WRAM0 Work RAM */
         return uint8(0x00)
@@ -103,13 +95,22 @@ func (m *GBMem) read(addr uint16) uint8 {
 
 func (m *GBMem) write(addr uint16, value uint8) {
     if (addr >= 0x0000 && addr < 0x4000) {
-        /* non-switchable ROM Bank */
+        /*
+         * non-switchable ROM Bank. READ ONLY NO WRITERINO PLZ
+         * TODO: fault
+         */
+        return;
     } else if (addr >= 0x4000 && addr < 0x8000) {
-        /* switchable ROM Bank */
+        /*
+         * switchable ROM Bank. READ ONLY NO WRITERINO PLZ
+         * TODO: fault
+         */
+        return;
     } else if (addr >= 0x8000 && addr < 0xa000) {
         /* VRAM */
     } else if (addr >= 0xa000 && addr < 0xc000) {
         /* SRAM External RAM in cartridge, often battery buffered */
+        m.cartridge.writeRAM(addr, value)
     } else if (addr >= 0xc000 && addr < 0xd000) {
         /* WRAM0 Work RAM */
     } else if (addr >= 0xd000 && addr < 0xe000) {
@@ -127,4 +128,15 @@ func (m *GBMem) write(addr uint16, value uint8) {
     } else {
         /* 0xffff - IE Register Interrupt enable flags */
     }
+}
+
+/* Interface for the different cartridges */
+type GBCartridge interface {
+    /*
+     * ROM - [0x4000, 0x8000)
+     * RAM - [0xa000, 0xc000)
+     */
+    readROM(addr uint16) uint8
+    readRAM(addr uint16) uint8
+    writeRAM(addr uint16, data uint8)
 }
