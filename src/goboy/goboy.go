@@ -94,7 +94,3 @@ func (r *Register) set8Reg(id Reg8ID, value uint8) {
         r.regs[block] |= uint16(value)
     }
 }
-
-func (r *Register) incrementPc(val int) {
-    r.set16Reg(PC, r.get16Reg(PC) + uint16(val))
-}
