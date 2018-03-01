@@ -17,10 +17,20 @@ func (gb *GameBoy) LD_r_n(ins uint16) {
 }
 
 // Load r <- (HL)
-// TODO: Write unit test
 func (gb *GameBoy) LD_r_hl(ins uint8) {
     r := Reg8ID((ins & 0x38) >> 3)
     address := gb.get16Reg(HL)
     gb.set8Reg(r, gb.mainMemory.read(address))
+    gb.regs[PC] += 1
+}
+
+
+//TODO: Write unit test
+//NOTE: gb.mainMemory.write() has not been implemented yet
+// Load (HL) <- r
+func (gb *GameBoy) LD_hl_r(ins uint8) {
+    r := Reg8ID(ins & 0x07)
+    address := gb.get16Reg(HL)
+    gb.mainMemory.write(address, gb.get8Reg(r))
     gb.regs[PC] += 1
 }
