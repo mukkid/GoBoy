@@ -5,21 +5,44 @@ import (
     "bytes"
     "encoding/hex"
     "fmt"
+    "io"
 )
 
+var r8 = []string{
+    "b",
+    "c",
+    "d",
+    "e",
+    "h",
+    "l",
+    "[hl]",
+    "a",
+}
 
-type reg8_id uint
+var r16_sp = []string{
+    "bc",
+    "de",
+    "hl",
+    "sp",
+}
 
-const (
-    B reg8_id = 0
-    C
-    D
-    E
-    H
-    L
-    /* 6 unused? */
-    A = 0x07
-)
+var r16_af = []string{
+    "bc",
+    "de",
+    "hl",
+    "af",
+}
+
+var conditions = []string{
+    "NZ",
+    "Z",
+    "NC",
+    "C",
+    "PO",
+    "PE",
+    "P",
+    "M",
+}
 
 /* Consumes an immediate 8 bit value from the stream, updates the args buffer with it */
 func imm8(r *bufio.Reader, instruction *[]uint8, args *bytes.Buffer) {
@@ -28,17 +51,53 @@ func imm8(r *bufio.Reader, instruction *[]uint8, args *bytes.Buffer) {
         return
     }
     *instruction = append(*instruction, nextByte)
-    args.WriteString("0x")
-    arg := []uint8{nextByte}
-    offset := make([]uint8, hex.EncodedLen(len(arg)))
-    hex.Encode(offset, arg)
-    args.Write(offset)
+    args.WriteString(fmt.Sprintf("0x%02x", nextByte))
+}
+
+/* Consumes a signed immediate 8 bit value from the stream, updates the args buffer with it */
+func imm8_s(r *bufio.Reader, instruction *[]uint8, args *bytes.Buffer) {
+    nextByte, err := r.ReadByte()
+    if err != nil {
+        return
+    }
+    *instruction = append(*instruction, nextByte)
+    args.WriteString(fmt.Sprintf("%d", int8(nextByte)))
+}
+
+func imm16(r *bufio.Reader, instruction *[]uint8, args *bytes.Buffer) {
+    imm := make([]uint8, 2)
+    _, err := io.ReadFull(r, imm)
+    if err != nil {
+        return
+    }
+    *instruction = append(*instruction, imm[0], imm[1])
+    args.WriteString(fmt.Sprintf("0x%02x%02x", imm[1], imm[0]))
+}
+
+func imm16_addr(r *bufio.Reader, instruction *[]uint8, args *bytes.Buffer) {
+    imm := make([]uint8, 2)
+    _, err := io.ReadFull(r, imm)
+    if err != nil {
+        return
+    }
+    *instruction = append(*instruction, imm[0], imm[1])
+    args.WriteString(fmt.Sprintf("[0x%02x%02x]", imm[1], imm[0]))
+}
+
+func r16_af_addr(r *bufio.Reader, instruction *[]uint8, args *bytes.Buffer) {
+    reg_index := ((*instruction)[0] & 0x30) >> 4
+    args.WriteString(fmt.Sprintf("[%s]", r16_af[reg_index]))
+}
+
+func r16_sp_addr(r *bufio.Reader, instruction *[]uint8, args *bytes.Buffer) {
+    reg_index := ((*instruction)[0] & 0x30) >> 4
+    args.WriteString(fmt.Sprintf("[%s]", r16_sp[reg_index]))
 }
 
 func decodeDJNZ(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, args *bytes.Buffer) {
     mnemonic.WriteString("djnz")
     /* Read operand (next byte) */
-    imm8(r, instruction, args)
+    imm8_s(r, instruction, args)
 }
 
 func decodeJR_E(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, args *bytes.Buffer) {
@@ -47,29 +106,104 @@ func decodeJR_E(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, a
     imm8(r, instruction, args)
 }
 
-func decodeJR_nz_E(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, args *bytes.Buffer) {
+func decodeJR_cond_E(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, args *bytes.Buffer) {
     mnemonic.WriteString("jr")
-    args.WriteString("nz, ")
+    cond_index := ((*instruction)[0] & 0x38) >> 3 - 4
+    args.WriteString(fmt.Sprintf("%s, ", conditions[cond_index]))
     imm8(r, instruction, args)
 }
 
-func decodeJR_z_E(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, args *bytes.Buffer) {
-    mnemonic.WriteString("jr")
-    args.WriteString("z, ")
+func decodeLD_r16_nn(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, args *bytes.Buffer) {
+    reg_index := ((*instruction)[0] & 0x30) >> 4
+    mnemonic.WriteString("ld")
+    args.WriteString(fmt.Sprintf("%s, ", r16_sp[reg_index]))
+    imm16(r, instruction, args)
+}
+
+func decodeADD_hl_r16(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, args *bytes.Buffer) {
+    reg_index := ((*instruction)[0] & 0x30) >> 4
+    mnemonic.WriteString("add")
+    args.WriteString("hl, ")
+    args.WriteString(r16_sp[reg_index])
+}
+
+func decodeLD_BC_A(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, args *bytes.Buffer) {
+    mnemonic.WriteString("ld")
+    args.WriteString("[bc], a")
+}
+
+func decodeLD_DE_A(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, args *bytes.Buffer) {
+    mnemonic.WriteString("ld")
+    args.WriteString("[de], a")
+}
+
+func decodeLD_nn_HL(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, args *bytes.Buffer) {
+    mnemonic.WriteString("ld")
+    imm16_addr(r, instruction, args)
+    args.WriteString(", hl")
+}
+
+func decodeLD_nn_A(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, args *bytes.Buffer) {
+    mnemonic.WriteString("ld")
+    imm16_addr(r, instruction, args)
+    args.WriteString(", a")
+}
+
+func decodeLD_A_BC(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, args *bytes.Buffer) {
+    mnemonic.WriteString("ld")
+    args.WriteString("a, ")
+    args.WriteString("[bc]")
+}
+
+func decodeLD_A_DE(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, args *bytes.Buffer) {
+    mnemonic.WriteString("ld")
+    args.WriteString("a, ")
+    args.WriteString("[de]")
+}
+
+func decodeLD_HL_nn(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, args *bytes.Buffer) {
+    mnemonic.WriteString("ld")
+    args.WriteString("hl, ")
+    imm16_addr(r, instruction, args)
+}
+
+func decodeLD_A_nn(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, args *bytes.Buffer) {
+    mnemonic.WriteString("ld")
+    args.WriteString("a, ")
+    imm16_addr(r, instruction, args)
+}
+
+func decodeINC_r16(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, args *bytes.Buffer) {
+    reg_index := ((*instruction)[0] & 0x30) >> 4
+    mnemonic.WriteString("inc")
+    args.WriteString(r16_sp[reg_index])
+}
+
+func decodeDEC_r16(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, args *bytes.Buffer) {
+    reg_index := ((*instruction)[0] & 0x30) >> 4
+    mnemonic.WriteString("dec")
+    args.WriteString(r16_sp[reg_index])
+}
+
+func decodeINC_r8(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, args *bytes.Buffer) {
+    reg_index := ((*instruction)[0] & 0x38) >> 3
+    mnemonic.WriteString("inc")
+    args.WriteString(r8[reg_index])
+}
+
+func decodeDEC_r8(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, args *bytes.Buffer) {
+    reg_index := ((*instruction)[0] & 0x38) >> 3
+    mnemonic.WriteString("dec")
+    args.WriteString(r8[reg_index])
+}
+
+func decodeLD_r8_n(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, args *bytes.Buffer) {
+    reg_index := ((*instruction)[0] & 0x38) >> 3
+    mnemonic.WriteString("ld")
+    args.WriteString(fmt.Sprintf("%s, ", r8[reg_index]))
     imm8(r, instruction, args)
 }
 
-func decodeJR_nc_E(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, args *bytes.Buffer) {
-    mnemonic.WriteString("jr")
-    args.WriteString("nc, ")
-    imm8(r, instruction, args)
-}
-
-func decodeJR_c_E(r *bufio.Reader, instruction *[]uint8, mnemonic *bytes.Buffer, args *bytes.Buffer) {
-    mnemonic.WriteString("jr")
-    args.WriteString("c, ")
-    imm8(r, instruction, args)
-}
 /*
  * Bumps the pointer in r
  * returns: the instruction bytes, the instruction mnemonic, the instruction operands
@@ -121,26 +255,103 @@ func decodeInstruction(r *bufio.Reader) ([]uint8, string, string) {
                          * jr E - jump to PC + E
                          */
                          decodeJR_E(r, &instruction, &mnemonic, &args)
-                    case 0x20:
-                        /* jr nz, E*/
-                        decodeJR_nz_E(r, &instruction, &mnemonic, &args)
-                    case 0x28:
-                        /* jr z, E*/
-                        decodeJR_z_E(r, &instruction, &mnemonic, &args)
-                    case 0x30:
-                        /* jr nc, E*/
-                        decodeJR_nc_E(r, &instruction, &mnemonic, &args)
-                    case 0x38:
-                        /* jr c, E*/
-                        decodeJR_c_E(r, &instruction, &mnemonic, &args)
+                    default:
+                        /* jr nz|z|nc|c, E*/
+                        decodeJR_cond_E(r, &instruction, &mnemonic, &args)
                     }
                 case 0x01:
+                    /* switch on bit 3 */
+                    switch nextByte & 0x08 {
+                    case 0x00:
+                        /* ld rp[p], nn */
+                        decodeLD_r16_nn(r, &instruction, &mnemonic, &args)
+                    case 0x08:
+                        /* add hl, rp[p] */
+                        decodeADD_hl_r16(r, &instruction, &mnemonic, &args)
+                    }
                 case 0x02:
+                    /* switch on bit 3 */
+                    switch nextByte & 0x08 {
+                    case 0x00:
+                        /* switch on bits 4-5 */
+                        switch nextByte & 0x30 {
+                            case 0x00:
+                                /* ld [bc], a */
+                                decodeLD_BC_A(r, &instruction, &mnemonic, &args)
+                            case 0x10:
+                                /* ld [de], a */
+                                decodeLD_DE_A(r, &instruction, &mnemonic, &args)
+                            case 0x20:
+                                /* ld [nn], hl */
+                                decodeLD_nn_HL(r, &instruction, &mnemonic, &args)
+                            case 0x30:
+                                /* ld [nn], a */
+                                decodeLD_nn_A(r, &instruction, &mnemonic, &args)
+                        }
+                    case 0x08:
+                        /* switch on bits 4-5 */
+                        switch nextByte & 0x30 {
+                        case 0x00:
+                            /* ld a, [bc] */
+                            decodeLD_A_BC(r, &instruction, &mnemonic, &args)
+                        case 0x10:
+                            /* ld a, [de] */
+                            decodeLD_A_DE(r, &instruction, &mnemonic, &args)
+                        case 0x20:
+                            /* ld hl, [nn] */
+                            decodeLD_HL_nn(r, &instruction, &mnemonic, &args)
+                        case 0x30:
+                            /* ld a, [nn] */
+                            decodeLD_A_nn(r, &instruction, &mnemonic, &args)
+                        }
+                    }
                 case 0x03:
+                    /* switch on bit 3 */
+                    switch nextByte & 0x08 {
+                    case 0x00:
+                        /* inc r16 */
+                        decodeINC_r16(r, &instruction, &mnemonic, &args)
+                    case 0x08:
+                        /* dec r16 */
+                        decodeDEC_r16(r, &instruction, &mnemonic, &args)
+                    }
                 case 0x04:
+                    /* inc r8 */
+                    decodeINC_r8(r, &instruction, &mnemonic, &args)
                 case 0x05:
+                    /* dec r8 */
+                    decodeDEC_r8(r, &instruction, &mnemonic, &args)
                 case 0x06:
+                    /* ld r8, n */
+                    decodeLD_r8_n(r, &instruction, &mnemonic, &args)
                 case 0x07:
+                    /* switch on bits 3-5 */
+                    switch nextByte & 0x38 {
+                    case 0x00:
+                        /* RLCA */
+                        mnemonic.WriteString("rlca")
+                    case 0x08:
+                        /* RRCA */
+                        mnemonic.WriteString("rrca")
+                    case 0x10:
+                        /* RLA */
+                        mnemonic.WriteString("rla")
+                    case 0x18:
+                        /* RRA */
+                        mnemonic.WriteString("rra")
+                    case 0x20:
+                        /* DAA */
+                        mnemonic.WriteString("daa")
+                    case 0x28:
+                        /* CPL */
+                        mnemonic.WriteString("cpl")
+                    case 0x30:
+                        /* SCF */
+                        mnemonic.WriteString("scf")
+                    case 0x38:
+                        /* CCF */
+                        mnemonic.WriteString("ccf")
+                    }
                 }
             case 0x40:
             case 0x80:
