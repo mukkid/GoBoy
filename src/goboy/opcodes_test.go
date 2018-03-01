@@ -33,7 +33,7 @@ func TestLD_r_hl(t *testing.T) {
     memValue := gb.mainMemory.read(0x1234)
     assert.Equal(t, memValue, uint8(0x42))
     gb.set16Reg(HL, 0x1234)
-    gb.LD_r_hl(0x5e)
+    gb.LD_r_hl(0x5e) // LD E (HL)
     assert.Equal(t, gb.get8Reg(E), uint8(0x42))
 }
 
@@ -45,7 +45,7 @@ func TestLD_a_bc(t *testing.T) {
     memValue := gb.mainMemory.read(0x1234)
     assert.Equal(t, memValue, uint8(0x42))
     gb.set16Reg(BC, 0x1234)
-    gb.LD_a_bc(0x0a)
+    gb.LD_a_bc(0x0a) // LD A (BC)
     assert.Equal(t, gb.get8Reg(A), uint8(0x42))
 }
 
@@ -57,7 +57,7 @@ func TestLD_a_de(t *testing.T) {
     memValue := gb.mainMemory.read(0x1234)
     assert.Equal(t, memValue, uint8(0x42))
     gb.set16Reg(DE, 0x1234)
-    gb.LD_a_de(0x1a)
+    gb.LD_a_de(0x1a) // LD A (DE)
     assert.Equal(t, gb.get8Reg(A), uint8(0x42))
 }
 
@@ -68,6 +68,7 @@ func TestLD_a_nn(t *testing.T) {
     gb.mainMemory.rom0[0x1234] = 0x42
     memValue := gb.mainMemory.read(0x1234)
     assert.Equal(t, memValue, uint8(0x42))
-    gb.LD_a_nn(0x3a3412)
+    gb.LD_a_nn(0x3a3412) // LD A (0x1234)
     assert.Equal(t, gb.get8Reg(A), uint8(0x42))
+    assert.Equal(t, gb.get16Reg(PC), uint16(0x3))
 }
