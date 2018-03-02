@@ -20,9 +20,7 @@ func main_c(argv []string) int {
     }
 
     bufReader := bufio.NewReader(file)
-    disassemblerLoop(bufReader)
-
-    return 0
+    return disassemblerLoop(bufReader)
 }
 
 func main() {
