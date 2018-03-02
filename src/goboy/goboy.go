@@ -3,7 +3,7 @@ package GoBoy
 //Frances was here!
 
 type GameBoy struct {
-    mainMemory GBMem
+    mainMemory *GBMem
     *Register
 }
 
