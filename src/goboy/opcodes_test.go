@@ -5,10 +5,12 @@ import (
     "github.com/stretchr/testify/assert"
 )
 
+func initGameboy() *GameBoy {
+    return &GameBoy{Register: &Register{}}
+}
+
 func TestLD_r_r(t *testing.T) {
-    gb := &GameBoy{
-        Register: &Register{},
-    }
+    gb := initGameboy()
     gb.set8Reg(B, 0xfe)
     gb.LD_r_r(0x50) // LD D, B
     assert.Equal(t, gb.get8Reg(B), uint8(0xfe))
@@ -17,18 +19,14 @@ func TestLD_r_r(t *testing.T) {
 }
 
 func TestLD_r_n(t *testing.T) {
-    gb := &GameBoy{
-        Register: &Register{},
-    }
+    gb := initGameboy()
     gb.LD_r_n(0xead) // LD C, 0xad
     assert.Equal(t, gb.get8Reg(C), uint8(0xad)) 
     assert.Equal(t, gb.get16Reg(PC), uint16(0x0002))
 }
 
 func TestLD_r_hl(t *testing.T) {
-    gb := &GameBoy{
-        Register: &Register{},
-    }
+    gb := initGameboy()
     gb.mainMemory.rom0[0x1234] = 0x42
     memValue := gb.mainMemory.read(0x1234)
     assert.Equal(t, memValue, uint8(0x42))
@@ -38,9 +36,7 @@ func TestLD_r_hl(t *testing.T) {
 }
 
 func TestLD_a_bc(t *testing.T) {
-    gb := &GameBoy{
-        Register: &Register{},
-    }
+    gb := initGameboy()
     gb.mainMemory.rom0[0x1234] = 0x42
     memValue := gb.mainMemory.read(0x1234)
     assert.Equal(t, memValue, uint8(0x42))
@@ -50,9 +46,7 @@ func TestLD_a_bc(t *testing.T) {
 }
 
 func TestLD_a_de(t *testing.T) {
-    gb := &GameBoy{
-        Register: &Register{},
-    }
+    gb := initGameboy()
     gb.mainMemory.rom0[0x1234] = 0x42
     memValue := gb.mainMemory.read(0x1234)
     assert.Equal(t, memValue, uint8(0x42))
@@ -62,13 +56,42 @@ func TestLD_a_de(t *testing.T) {
 }
 
 func TestLD_a_nn(t *testing.T) {
-    gb := &GameBoy{
-        Register: &Register{},
-    }
+    gb := initGameboy()
     gb.mainMemory.rom0[0x1234] = 0x42
     memValue := gb.mainMemory.read(0x1234)
     assert.Equal(t, memValue, uint8(0x42))
     gb.LD_a_nn(0x3a3412) // LD A (0x1234)
     assert.Equal(t, gb.get8Reg(A), uint8(0x42))
     assert.Equal(t, gb.get16Reg(PC), uint16(0x3))
+}
+
+/* 16 BIT LOAD TESTS */
+
+func TestLD_dd_nn(t *testing.T) {
+    gb := initGameboy()
+    gb.LD_dd_nn(0x21abcd) // LD HL 0xabcd
+    assert.Equal(t, gb.get16Reg(HL), uint16(0xabcd))
+}
+
+func TestLD_hl_nn(t *testing.T) {
+    gb := initGameboy()
+    gb.mainMemory.rom0[0x0123] = 0x34
+    gb.mainMemory.rom0[0x0124] = 0x12
+    gb.LD_hl_nn(0x2a0123) // LD HL <- 0x1234
+    assert.Equal(t, gb.get16Reg(HL), uint16(0x1234))
+}
+
+func TestLD_dd_NN(t *testing.T) {
+    gb := initGameboy()
+    gb.mainMemory.rom0[0x0123] = 0xcd
+    gb.mainMemory.rom0[0x0124] = 0xab
+    gb.LD_dd_NN(0xed5b0123) // LD DE (0x0123)
+    assert.Equal(t, gb.get16Reg(DE), uint16(0xabcd))
+}
+
+func TestLD_sp_hl(t *testing.T) {
+    gb := initGameboy()
+    gb.set16Reg(HL, 0x1234)
+    gb.LD_sp_hl(0xf9) // LD SP HL (HL = 0x1234)
+    assert.Equal(t, gb.get16Reg(SP), uint16(0x1234))
 }

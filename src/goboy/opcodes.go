@@ -68,7 +68,6 @@ func (gb *GameBoy) LD_a_de(ins uint8) {
 }
 
 /*
- * TODO: Write unit test
  * Load A <- (nn)
  * NOTE: By convention, 24 bit instructions will be passed
  * as uint32 numbers with padding on the MSBs
@@ -105,7 +104,8 @@ func (gb *GameBoy) LD_de_a(ins uint8) {
 }
 
 /*
- *NOTE: gb.mainMemory.write() needs to be implemented
+ * TODO: Write unit test
+ * NOTE: gb.mainMemory.write() needs to be implemented
  * Load (nn) <- A
  */
 func (gb *GameBoy) LD_nn_a(ins uint32) {
@@ -115,4 +115,102 @@ func (gb *GameBoy) LD_nn_a(ins uint32) {
     address := addressLow | addressHigh
     gb.mainMemory.write(address, gb.get8Reg(A))
     gb.regs[PC] += 3
+}
+
+/* 16 BIT LOADS */
+
+// LD dd <- nn
+func (gb *GameBoy) LD_dd_nn(ins uint32) {
+    reg := Reg16ID(ins >> 20)
+    nn := uint16(ins)
+    gb.set16Reg(reg, nn)
+    gb.regs[PC] += 3
+}
+
+// LD HL <- (nn)
+func (gb *GameBoy) LD_hl_nn(ins uint32) {
+    address := uint16(ins)
+    lowVal := gb.mainMemory.read(address)
+    highVal := gb.mainMemory.read(address + 1)
+    gb.set8Reg(H, highVal)
+    gb.set8Reg(L, lowVal)
+    gb.regs[PC] += 3
+}
+
+// LD dd <- (NN)
+func (gb *GameBoy) LD_dd_NN(ins uint32) {
+    reg := Reg16ID((ins >> 20) & 0x03)
+    address := uint16(ins)
+    lowVal := gb.mainMemory.read(address)
+    highVal := gb.mainMemory.read(address + 1)
+    val := uint16(lowVal) | (uint16(highVal) << 8)
+    gb.set16Reg(reg, val)
+    gb.regs[PC] += 4
+}
+
+// TODO: Write unit test
+// NOTE: gb.mainMemory.write() needs to be implemented
+// LD (nn) <- HL
+func (gb *GameBoy) LD_nn_hl(ins uint32) {
+    address := uint16(ins)
+    highVal := gb.get8Reg(H)
+    lowVal := gb.get8Reg(L)
+    gb.mainMemory.write(address, lowVal)
+    gb.mainMemory.write(address + 1, highVal)
+    gb.regs[PC] += 3
+}
+
+// TODO: Write unit test
+// NOTE: gb.mainMemory.write() needs to be implemented
+// LD (nn) <- dd
+func (gb *GameBoy) LD_nn_dd(ins uint32) {
+    reg := Reg16ID((ins >> 20) & 0x03)
+    value := gb.get16Reg(reg)
+    lowVal := uint8(value)
+    highVal := uint8(value >> 8)
+    address := uint16(ins)
+    gb.mainMemory.write(address, lowVal)
+    gb.mainMemory.write(address + 1, highVal)
+    gb.regs[PC] += 4
+}
+
+// LD SP <- HL
+func (gb *GameBoy) LD_sp_hl(ins uint8) {
+    gb.set16Reg(SP, gb.get16Reg(HL))
+    gb.regs[PC] += 1
+}
+
+// TODO: Write unit test
+// NOTE: gb.mainMemory.write() needs to be implemented
+// PUSH qq
+func (gb *GameBoy) PUSH_qq(ins uint8) {
+    reg := Reg16ID((ins >> 4) & 0x3)
+    if reg == 0x3 {
+        reg = 0x5
+    }
+    val := gb.get16Reg(reg)
+    lowVal := uint8(val)
+    highVal := uint8(val >> 8)
+    gb.regs[SP] -= 1
+    gb.mainMemory.write(gb.get16Reg(SP), highVal)
+    gb.regs[SP] -= 1
+    gb.mainMemory.write(gb.get16Reg(SP), lowVal)
+    gb.regs[PC] += 1
+}
+
+// TODO: Write unit test
+// NOTE: Accessing RAM needs to be implemented
+// POP qq
+func (gb *GameBoy) POP_qq(ins uint8) {
+    reg := Reg16ID((ins >> 4) & 0x3)
+    if reg == 0x3 {
+        reg = 0x5
+    }
+    lowVal := gb.mainMemory.read(gb.get16Reg(SP))
+    gb.regs[SP] += 1
+    highVal := gb.mainMemory.read(gb.get16Reg(SP))
+    gb.regs[SP] += 1
+    val := uint16(lowVal) | (uint16(highVal) << 8)
+    gb.set16Reg(reg, val)
+    gb.regs[PC] += 1
 }
