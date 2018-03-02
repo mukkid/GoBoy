@@ -1,8 +1,11 @@
 package GoBoy
 
 type GBMem struct {
-    mram [8 * 1024]uint8
+    /* Work RAM at 0xc000 - 0xd000 */
+    wram [8 * 1024]uint8
     vram [8 * 1024]uint8
+    /* HRAM: 0xff80 - 0xfffe */
+    hram [127]uint8
     /* ROM bank 0, nonswitchable - I believe this means this bank is static */
     rom0 [16 * 1024] uint8
     cartridge GBCartridge
@@ -68,13 +71,16 @@ func (m *GBMem) read(addr uint16) uint8 {
         return m.cartridge.readRAM(addr)
     } else if (addr >= 0xc000 && addr < 0xd000) {
         /* WRAM0 Work RAM */
-        return uint8(0x00)
+        return m.wram[addr - 0xc000]
     } else if (addr >= 0xd000 && addr < 0xe000) {
-        /* WRAMX, switchable (1-7) in GBC mode */
-        return uint8(0x00)
+        /*
+         * WRAMX, switchable (1-7) in GBC mode
+         * TODO: Implement GBC mode
+         */
+        return m.wram[addr - 0xc000]
     } else if (addr >= 0xe000 && addr < 0xfe00) {
         /* ECHO of 0xc000 - 0xde00 */
-        return uint8(0x00)
+        return m.wram[addr - 0x2000 - 0xc000]
     } else if (addr >= 0xfe00 && addr < 0xfea0) {
         /* OAM (Object Attribute Table) Sprite information table */
         return uint8(0x00)
@@ -84,9 +90,9 @@ func (m *GBMem) read(addr uint16) uint8 {
     } else if (addr >= 0xff00 && addr < 0xff80) {
         /* I/O Registers I/O registers are mapped here */
         return uint8(0x00)
-    } else if (addr >= 0xff80 && addr < 0xfffe) {
+    } else if (addr >= 0xff80 && addr < 0xffff) {
         /* HRAM Internal CPU RAM */
-        return uint8(0x00)
+        return m.hram[addr - 0xff80]
     } else {
         /* 0xffff - IE Register Interrupt enable flags */
         return uint8(0x00)
@@ -94,18 +100,11 @@ func (m *GBMem) read(addr uint16) uint8 {
 }
 
 func (m *GBMem) write(addr uint16, value uint8) {
-    if (addr >= 0x0000 && addr < 0x4000) {
+    if (addr >= 0x0000 && addr < 0x8000) {
         /*
-         * non-switchable ROM Bank. READ ONLY NO WRITERINO PLZ
-         * TODO: fault
+         * Both non-switchable and switchable ROM Bank. 
          */
-        return;
-    } else if (addr >= 0x4000 && addr < 0x8000) {
-        /*
-         * switchable ROM Bank. READ ONLY NO WRITERINO PLZ
-         * TODO: fault
-         */
-        return;
+        m.cartridge.writeROM(addr, value)
     } else if (addr >= 0x8000 && addr < 0xa000) {
         /* VRAM */
     } else if (addr >= 0xa000 && addr < 0xc000) {
@@ -113,18 +112,25 @@ func (m *GBMem) write(addr uint16, value uint8) {
         m.cartridge.writeRAM(addr, value)
     } else if (addr >= 0xc000 && addr < 0xd000) {
         /* WRAM0 Work RAM */
+        m.wram[addr - 0xc000] = value
     } else if (addr >= 0xd000 && addr < 0xe000) {
-        /* WRAMX, switchable (1-7) in GBC mode */
+        /*
+         * TODO: Implement GBC mode
+         * WRAMX, switchable (1-7) in GBC mode
+         */
+        m.wram[addr - 0xc000] = value
     } else if (addr >= 0xe000 && addr < 0xfe00) {
         /* ECHO of 0xc000 - 0xde00 */
+        m.wram[addr - 0x2000 - 0xc000] = value
     } else if (addr >= 0xfe00 && addr < 0xfea0) {
         /* OAM (Object Attribute Table) Sprite information table */
     } else if (addr >= 0xfea0 && addr < 0xff00) {
         /* Unused */
     } else if (addr >= 0xff00 && addr < 0xff80) {
         /* I/O Registers I/O registers are mapped here */
-    } else if (addr >= 0xff80 && addr < 0xfffe) {
+    } else if (addr >= 0xff80 && addr < 0xffff) {
         /* HRAM Internal CPU RAM */
+        m.hram[addr - 0xff80] = value
     } else {
         /* 0xffff - IE Register Interrupt enable flags */
     }
@@ -138,5 +144,6 @@ type GBCartridge interface {
      */
     readROM(addr uint16) uint8
     readRAM(addr uint16) uint8
+    writeROM(addr uint16, data uint8)
     writeRAM(addr uint16, data uint8)
 }

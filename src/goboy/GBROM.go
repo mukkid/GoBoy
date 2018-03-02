@@ -21,6 +21,13 @@ func (r *GBROM) readRAM(addr uint16) uint8 {
     return 0;
 }
 
+func (r *GBROM) writeROM(addr uint16, data uint8) {
+    /*
+     * Not sure if this cartridge type crashes on ROM writes
+     */
+     return;
+}
+
 func (r *GBROM) writeRAM(addr uint16, data uint8) {
     /*
      * ROM-only cartrdiges have no RAM
