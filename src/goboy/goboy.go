@@ -38,6 +38,11 @@ const (
     C_FLAG FlagId = 0x0010
 )
 
+const (
+    SET = 0xffff
+    CLEAR = 0x0000
+)
+
 
 type Register struct {
     /*
@@ -103,9 +108,7 @@ func (r *Register) set8Reg(id Reg8ID, value uint8) {
     }
 }
 
-func (r *Register) modifyFlag(flag FlagId, value uint8) {
+func (r *Register) modifyFlag(flag FlagId, value uint16) {
     r.regs[5] &= ^uint16(flag)
-    if value == 1 {
-        r.regs[5] |= uint16(flag) 
-    }
+    r.regs[5] |= (uint16(flag) & value)
 }

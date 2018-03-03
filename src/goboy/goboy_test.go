@@ -30,12 +30,12 @@ func TestSet8Reg(t *testing.T) {
 
 func TestModifyFlag(t *testing.T) {
     regs := &Register{}
-    regs.modifyFlag(Z_FLAG, 1)
+    regs.modifyFlag(Z_FLAG, SET)
     assert.Equal(t, regs.get8Reg(F), uint8(0x80))
-    regs.modifyFlag(Z_FLAG, 0)
+    regs.modifyFlag(Z_FLAG, CLEAR)
     assert.Equal(t, regs.get8Reg(F), uint8(0x00))
-    regs.modifyFlag(N_FLAG, 1)
-    regs.modifyFlag(H_FLAG, 1)
-    regs.modifyFlag(C_FLAG, 1)
+    regs.modifyFlag(N_FLAG, SET)
+    regs.modifyFlag(H_FLAG, SET)
+    regs.modifyFlag(C_FLAG, SET)
     assert.Equal(t, regs.get8Reg(F), uint8(0x70))
 }
