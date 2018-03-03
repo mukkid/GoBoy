@@ -3,12 +3,13 @@ package GoBoy
 //Frances was here!
 
 type GameBoy struct {
-    mainMemory GBMem
+    mainMemory *GBMem
     *Register
 }
 
 type Reg8ID int
 type Reg16ID int
+type FlagId uint16
 
 const (
     B Reg8ID = 0x00
@@ -28,6 +29,18 @@ const (
     SP Reg16ID = 0x03
     PC Reg16ID = 0x04
     AF Reg16ID = 0x05
+)
+
+const (
+    Z_FLAG FlagId = 0x0080
+    N_FLAG FlagId = 0x0040
+    H_FLAG FlagId = 0x0020
+    C_FLAG FlagId = 0x0010
+)
+
+const (
+    SET = 0xffff
+    CLEAR = 0x0000
 )
 
 
@@ -93,4 +106,9 @@ func (r *Register) set8Reg(id Reg8ID, value uint8) {
         r.regs[block] &= 0xff00
         r.regs[block] |= uint16(value)
     }
+}
+
+func (r *Register) modifyFlag(flag FlagId, value uint16) {
+    r.regs[5] &= ^uint16(flag)
+    r.regs[5] |= (uint16(flag) & value)
 }

@@ -27,11 +27,7 @@ func (gb *GameBoy) LD_r_hl(ins [1]uint8) {
 }
 
 
-/*
- * TODO: Write unit test
- * NOTE: gb.mainMemory.write() has not been implemented yet
- * Load (HL) <- r
- */
+// Load (HL) <- r
 func (gb *GameBoy) LD_hl_r(ins [1]uint8) {
     r := Reg8ID(ins[0] & 0x07)
     address := gb.get16Reg(HL)
@@ -39,11 +35,7 @@ func (gb *GameBoy) LD_hl_r(ins [1]uint8) {
     gb.regs[PC] += uint16(len(ins))
 }
 
-/* 
- * TODO: Write unit test
- * NOTE: gb.mainMemory.write() has not been implemented yet
- * Load (HL) <- n
- */
+// Load (HL) <- n
 func (gb *GameBoy) LD_hl_n(ins [2]uint8) {
     n := ins[1]
     address := gb.get16Reg(HL)
@@ -51,18 +43,14 @@ func (gb *GameBoy) LD_hl_n(ins [2]uint8) {
     gb.regs[PC] += uint16(len(ins))
 }
 
-/*
- * Load A <- (BC)
- */
+// Load A <- (BC)
 func (gb *GameBoy) LD_a_bc(ins [1]uint8) {
     address := gb.get16Reg(BC)
     gb.set8Reg(A, gb.mainMemory.read(address))
     gb.regs[PC] += uint16(len(ins))
 }
 
-/*
- * Load A <- (DE)
- */
+// Load A <- (DE)
 func (gb *GameBoy) LD_a_de(ins [1]uint8) {
     address := gb.get16Reg(DE)
     gb.set8Reg(A, gb.mainMemory.read(address))
@@ -80,33 +68,21 @@ func (gb *GameBoy) LD_a_nn(ins [3]uint8) {
     gb.regs[PC] += uint16(len(ins))
 }
 
-/*
- * TODO: Write unit test
- * NOTE: gb.mainMemory.write() needs to be implemented
- * Load (BC) <- A
- */
+// Load (BC) <- A
 func (gb *GameBoy) LD_bc_a(ins [1]uint8) {
     address := gb.get16Reg(BC)
     gb.mainMemory.write(address, gb.get8Reg(A))
     gb.regs[PC] += uint16(len(ins))
 }
 
-/*
- * TODO: Write unit test
- * NOTE: gb.mainMemory.write() needs to be implemented
- * Load (DE) <- A
- */
+// Load (DE) <- A
 func (gb *GameBoy) LD_de_a(ins [1]uint8) {
     address := gb.get16Reg(DE)
     gb.mainMemory.write(address, gb.get8Reg(A))
     gb.regs[PC] += uint16(len(ins))
 }
 
-/*
- * TODO: Write unit test
- * NOTE: gb.mainMemory.write() needs to be implemented
- * Load (nn) <- A
- */
+// Load (nn) <- A
 func (gb *GameBoy) LD_nn_a(ins [3]uint8) {
     address := binary.LittleEndian.Uint16(ins[1:])
     gb.mainMemory.write(address, gb.get8Reg(A))
@@ -144,8 +120,6 @@ func (gb *GameBoy) LD_dd_NN(ins [4]uint8) {
     gb.regs[PC] += uint16(len(ins))
 }
 
-// TODO: Write unit test
-// NOTE: gb.mainMemory.write() needs to be implemented
 // LD (nn) <- HL
 func (gb *GameBoy) LD_nn_hl(ins [3]uint8) {
     address := binary.LittleEndian.Uint16(ins[1:])
@@ -156,8 +130,6 @@ func (gb *GameBoy) LD_nn_hl(ins [3]uint8) {
     gb.regs[PC] += uint16(len(ins))
 }
 
-// TODO: Write unit test
-// NOTE: gb.mainMemory.write() needs to be implemented
 // LD (nn) <- dd
 func (gb *GameBoy) LD_nn_dd(ins [4]uint8) {
     reg := Reg16ID((ins[1] >> 4) & 0x03)
@@ -176,8 +148,6 @@ func (gb *GameBoy) LD_sp_hl(ins [1]uint8) {
     gb.regs[PC] += uint16(len(ins))
 }
 
-// TODO: Write unit test
-// NOTE: gb.mainMemory.write() needs to be implemented
 // PUSH qq
 func (gb *GameBoy) PUSH_qq(ins [1]uint8) {
     reg := Reg16ID((ins[0] >> 4) & 0x3)
@@ -194,8 +164,6 @@ func (gb *GameBoy) PUSH_qq(ins [1]uint8) {
     gb.regs[PC] += uint16(len(ins))
 }
 
-// TODO: Write unit test
-// NOTE: Accessing RAM needs to be implemented
 // POP qq
 func (gb *GameBoy) POP_qq(ins [1]uint8) {
     reg := Reg16ID((ins[0] >> 4) & 0x3)
