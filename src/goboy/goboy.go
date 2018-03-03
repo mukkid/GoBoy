@@ -9,6 +9,7 @@ type GameBoy struct {
 
 type Reg8ID int
 type Reg16ID int
+type FlagId uint16
 
 const (
     B Reg8ID = 0x00
@@ -28,6 +29,13 @@ const (
     SP Reg16ID = 0x03
     PC Reg16ID = 0x04
     AF Reg16ID = 0x05
+)
+
+const (
+    Z_FLAG FlagId = 0x0080
+    N_FLAG FlagId = 0x0040
+    H_FLAG FlagId = 0x0020
+    C_FLAG FlagId = 0x0010
 )
 
 
@@ -92,5 +100,12 @@ func (r *Register) set8Reg(id Reg8ID, value uint8) {
     } else {
         r.regs[block] &= 0xff00
         r.regs[block] |= uint16(value)
+    }
+}
+
+func (r *Register) modifyFlag(flag FlagId, value uint8) {
+    r.regs[5] &= ^uint16(flag)
+    if value == 1 {
+        r.regs[5] |= uint16(flag) 
     }
 }
