@@ -443,6 +443,7 @@ func (gb *GameBoy) SBC_a_n(ins [2]uint8) {
     bVal := ins[1]
     c := gb.get8Reg(F) & uint8(C_FLAG) >> 4
     out := aVal -(bVal + c)
+    gb.set8Reg(A, out)
     if aVal < (bVal + c) {
         gb.modifyFlag(C_FLAG, SET)
     } else {
