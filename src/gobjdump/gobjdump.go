@@ -70,6 +70,17 @@ var conditions = []string{
     "M",
 }
 
+var ALU = [][]string{
+    []string{"add", "a"},
+    []string{"adc", "a"},
+    []string{"sub"},
+    []string{"sbc", "a"},
+    []string{"and"},
+    []string{"xor"},
+    []string{"or"},
+    []string{"cp"},
+}
+
 /* Consumes an immediate 8 bit value from the stream, updates the args buffer with it */
 func imm8(r *bufio.Reader, instruction *[]uint8) (string, error) {
     nextByte, err := r.ReadByte()
@@ -294,6 +305,145 @@ func decodeLD_r8_n(r *bufio.Reader, instruction *[]uint8, mnemonic *[]string) er
     return nil
 }
 
+func decodeLD_r8_r8(r *bufio.Reader, instruction *[]uint8, mnemonic *[]string) {
+    reg_dst := ((*instruction)[0] & 0x38) >> 3
+    reg_src := (*instruction)[0] & 0x7
+    *mnemonic = append(*mnemonic, "ld")
+    *mnemonic = append(*mnemonic, r8[reg_dst])
+    *mnemonic = append(*mnemonic, r8[reg_src])
+}
+
+func decodeALU_r8(r *bufio.Reader, instruction *[]uint8, mnemonic *[]string) {
+    alu_op := ((*instruction)[0] & 0x38) >> 3
+    reg_index := (*instruction)[0] & 0x07
+    *mnemonic = append(*mnemonic, ALU[alu_op]...)
+    *mnemonic = append(*mnemonic, r8[reg_index])
+}
+
+func decodeRET_cc(r *bufio.Reader, instruction *[]uint8, mnemonic *[]string) {
+    cc := ((*instruction)[0] & 0x38) >> 3
+    *mnemonic = append(*mnemonic, "ret")
+    *mnemonic = append(*mnemonic, conditions[cc])
+}
+
+func decodePOP_r16(r *bufio.Reader, instruction *[]uint8, mnemonic *[]string) {
+    reg_index := ((*instruction)[0] & 0x30) >> 4
+    *mnemonic = append(*mnemonic, "pop")
+    *mnemonic = append(*mnemonic, r16_af[reg_index])
+}
+
+func decodeJP_HL(r *bufio.Reader, instruction *[]uint8, mnemonic *[]string) {
+    *mnemonic = append(*mnemonic, "jp")
+    *mnemonic = append(*mnemonic, "hl")
+}
+
+func decodeLD_SP_HL(r *bufio.Reader, instruction *[]uint8, mnemonic *[]string) {
+    *mnemonic = append(*mnemonic, "ld")
+    *mnemonic = append(*mnemonic, "sp")
+    *mnemonic = append(*mnemonic, "hl")
+}
+
+func decodeJP_cc_nn(r *bufio.Reader, instruction *[]uint8, mnemonic *[]string) error {
+    cc := ((*instruction)[0] & 0x38) >> 3
+    *mnemonic = append(*mnemonic, "jp")
+    *mnemonic = append(*mnemonic, conditions[cc])
+    operand, err := imm16(r, instruction)
+    if err != nil {
+        return err
+    }
+    *mnemonic = append(*mnemonic, operand)
+    return nil
+}
+
+func decodeJP_nn(r *bufio.Reader, instruction *[]uint8, mnemonic *[]string) error {
+    *mnemonic = append(*mnemonic, "jp")
+    operand, err := imm16(r, instruction)
+    if err != nil {
+        return err
+    }
+    *mnemonic = append(*mnemonic, operand)
+    return nil
+}
+
+func decodeOUT_n_A(r *bufio.Reader, instruction *[]uint8, mnemonic *[]string) error {
+    *mnemonic = append(*mnemonic, "out")
+    operand, err := imm8(r, instruction)
+    if err != nil {
+        return err
+    }
+    *mnemonic = append(*mnemonic, fmt.Sprintf("[%s]", operand))
+    *mnemonic = append(*mnemonic, "a")
+    return nil
+}
+
+func decodeIN_a_n(r *bufio.Reader, instruction *[]uint8, mnemonic *[]string) error {
+    *mnemonic = append(*mnemonic, "in")
+    *mnemonic = append(*mnemonic, "a")
+    operand, err := imm8(r, instruction)
+    if err != nil {
+        return err
+    }
+    *mnemonic = append(*mnemonic, fmt.Sprintf("[%s]", operand))
+    return nil
+}
+
+func decodeEX_SP_HL(r *bufio.Reader, instruction *[]uint8, mnemonic *[]string) {
+    *mnemonic = append(*mnemonic, "ex")
+    *mnemonic = append(*mnemonic, "[sp]")
+    *mnemonic = append(*mnemonic, "hl")
+}
+
+func decodeEX_DE_HL(r *bufio.Reader, instruction *[]uint8, mnemonic *[]string) {
+    *mnemonic = append(*mnemonic, "ex")
+    *mnemonic = append(*mnemonic, "de")
+    *mnemonic = append(*mnemonic, "hl")
+}
+
+func decodeCALL_cc_nn(r *bufio.Reader, instruction *[]uint8, mnemonic *[]string) error {
+    cc := ((*instruction)[0] & 0x38) >> 3
+    *mnemonic = append(*mnemonic, "call")
+    *mnemonic = append(*mnemonic, conditions[cc])
+    operand, err := imm16(r, instruction)
+    if err != nil {
+        return err
+    }
+    *mnemonic = append(*mnemonic, operand)
+    return nil
+}
+
+func decodePUSH_r16(r *bufio.Reader, instruction *[]uint8, mnemonic *[]string) {
+    reg_index := ((*instruction)[0] & 0x30) >> 4
+    *mnemonic = append(*mnemonic, "push")
+    *mnemonic = append(*mnemonic, r16_af[reg_index])
+}
+
+func decodeCALL_nn(r *bufio.Reader, instruction *[]uint8, mnemonic *[]string) error {
+    *mnemonic = append(*mnemonic, "call")
+    operand, err := imm16(r, instruction)
+    if err != nil {
+        return err
+    }
+    *mnemonic = append(*mnemonic, operand)
+    return nil
+}
+
+func decodeALU_n(r *bufio.Reader, instruction *[]uint8, mnemonic *[]string) error {
+    alu_op := ((*instruction)[0] & 0x38) >> 3
+    *mnemonic = append(*mnemonic, ALU[alu_op]...)
+    operand, err := imm8(r, instruction)
+    if err != nil {
+        return err
+    }
+    *mnemonic = append(*mnemonic, operand)
+    return nil
+}
+
+func decodeRST(r *bufio.Reader, instruction *[]uint8, mnemonic *[]string) {
+    t := ((*instruction)[0] & 0x38) >> 3
+    *mnemonic = append(*mnemonic, "rst")
+    *mnemonic = append(*mnemonic, fmt.Sprintf("0x%02x", t * 8))
+}
+
 /*
  * Bumps the pointer in r
  * returns: the instruction bytes, the instruction mnemonic as an array of tokens
@@ -313,7 +463,7 @@ func decodeInstruction(r *bufio.Reader) ([]uint8, []string, error) {
 
     switch nextByte {
     /* prefix */
-    case 0xcc:
+    case 0xcb:
         err = &Z80AsmError{errorType: Z80AsmErrorUnimplementedInstruction}
     case 0xdd:
         err = &Z80AsmError{errorType: Z80AsmErrorUnimplementedInstruction}
@@ -450,11 +600,88 @@ func decodeInstruction(r *bufio.Reader) ([]uint8, []string, error) {
                 }
             }
         case 0x40:
-            err = &Z80AsmError{errorType: Z80AsmErrorUnimplementedInstruction}
+            switch nextByte & 0x07{
+            case 0x6:
+                switch nextByte & 0x38 {
+                case 0x30:
+                    mnemonic = append(mnemonic, "halt")
+                default:
+                    /* ld r, r' */
+                    decodeLD_r8_r8(r, &instruction, &mnemonic)
+                }
+            default:
+                /* ld r, r' */
+                decodeLD_r8_r8(r, &instruction, &mnemonic)
+            }
         case 0x80:
-            err = &Z80AsmError{errorType: Z80AsmErrorUnimplementedInstruction}
+            /* assorted ALU instructions */
+            decodeALU_r8(r, &instruction, &mnemonic)
         case 0xc0:
-            err = &Z80AsmError{errorType: Z80AsmErrorUnimplementedInstruction}
+            switch nextByte & 0x07 {
+                case 0x00:
+                    /* ret CC */
+                    decodeRET_cc(r, &instruction, &mnemonic)
+                case 0x01:
+                    switch nextByte & 0x08 {
+                    case 0x00:
+                        decodePOP_r16(r, &instruction, &mnemonic)
+                    case 0x08:
+                        switch nextByte & 0x30 {
+                        case 0x00:
+                            mnemonic = append(mnemonic, "ret")
+                        case 0x10:
+                            mnemonic = append(mnemonic, "exx")
+                        case 0x20:
+                            decodeJP_HL(r, &instruction, &mnemonic)
+
+                        case 0x30:
+                            decodeLD_SP_HL(r, &instruction, &mnemonic)
+                        }
+                    }
+                case 0x02:
+                    err = decodeJP_cc_nn(r, &instruction, &mnemonic)
+                case 0x03:
+                    switch nextByte & 0x38 {
+                    case 0x00:
+                        err = decodeJP_nn(r, &instruction, &mnemonic)
+                    case 0x08:
+                        /* 0xcb prefix */
+                    case 0x10:
+                        err = decodeOUT_n_A(r, &instruction, &mnemonic)
+                    case 0x18:
+                        err = decodeIN_a_n(r, &instruction, &mnemonic)
+                    case 0x20:
+                        decodeEX_SP_HL(r, &instruction, &mnemonic)
+                    case 0x28:
+                        decodeEX_DE_HL(r, &instruction, &mnemonic)
+                    case 0x30:
+                        mnemonic = append(mnemonic, "di")
+                    case 0x38:
+                        mnemonic = append(mnemonic, "ei")
+                    }
+                case 0x04:
+                    err = decodeCALL_cc_nn(r, &instruction, &mnemonic)
+                case 0x05:
+                    switch nextByte & 0x08 {
+                    case 0x00:
+                        decodePUSH_r16(r, &instruction, &mnemonic)
+                    case 0x08:
+                        switch nextByte & 0x30 {
+                        case 0x00:
+                            err = decodeCALL_nn(r, &instruction, &mnemonic)
+                        case 0x10:
+                            /* DD prefix */
+                        case 0x20:
+                            /* ED prefix */
+                        case 0x30:
+                            /* FD prefix */
+                        }
+                    }
+                case 0x06:
+                    err = decodeALU_n(r, &instruction, &mnemonic)
+                case 0x07:
+                    decodeRST(r, &instruction, &mnemonic)
+            }
         }
     }
     return instruction, mnemonic, err
