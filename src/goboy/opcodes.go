@@ -288,6 +288,7 @@ func (gb *GameBoy) ADC_a_n(ins [2]uint8) {
     bVal := ins[1]
     c := gb.get8Reg(F) & uint8(C_FLAG) >> 4
     out := aVal + bVal + c
+    gb.set8Reg(A, out)
     if (aVal & 0x0f) + (bVal & 0x0f) > 0x0f {
         gb.modifyFlag(H_FLAG, SET)
     } else {

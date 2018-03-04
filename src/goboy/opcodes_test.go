@@ -170,3 +170,131 @@ func TestPOP_qq(t *testing.T) {
     gb.POP_qq([1]uint8{0xf1}) // POP AF
     assert.Equal(t, gb.get16Reg(AF), uint16(0x1234))
 }
+
+/* ALU TESTS */
+
+func TestADD_a_r(t *testing.T) {
+    gb := initGameboy()
+    // N_FLAG is always reset
+    gb.ADD_a_r([1]uint8{0x80}) // ADD A B
+    assert.Equal(t, gb.get8Reg(A), uint8(0x0))
+    assert.Equal(t, gb.get8Reg(F), uint8(0x80)) // Z_FLAG is set
+
+    gb.set8Reg(A, 0x0a)
+    gb.set8Reg(B, 0x0c)
+    gb.ADD_a_r([1]uint8{0x80}) // ADD A B
+    assert.Equal(t, gb.get8Reg(A), uint8(0x16))
+    assert.Equal(t, gb.get8Reg(F), uint8(0x20)) // H_FLAG is set
+
+    gb.set8Reg(A, 0xf0)
+    gb.set8Reg(B, 0xf0)
+    gb.ADD_a_r([1]uint8{0x80}) // ADD A B
+    assert.Equal(t, gb.get8Reg(A), uint8(0xe0))
+    assert.Equal(t, gb.get8Reg(F), uint8(0x10)) // C_FLAG is set
+}
+
+func TestADD_a_n(t *testing.T) {
+    // N_FLAG is always reset
+    gb := initGameboy()
+    gb.ADD_a_n([2]uint8{0xc6, 0x00}) // ADD A 0x00
+    assert.Equal(t, gb.get8Reg(A), uint8(0x0))
+    assert.Equal(t, gb.get8Reg(F), uint8(0x80)) // Z_FLAG is set
+
+    gb.set8Reg(A, 0x0a)
+    gb.ADD_a_n([2]uint8{0xc6, 0x0c}) // ADD A 0x0c
+    assert.Equal(t, gb.get8Reg(A), uint8(0x16))
+    assert.Equal(t, gb.get8Reg(F), uint8(0x20)) // H_FLAG is set
+
+    gb.set8Reg(A, 0xf0)
+    gb.ADD_a_n([2]uint8{0xc6, 0xf0}) // ADD A 0xf0
+    assert.Equal(t, gb.get8Reg(A), uint8(0xe0))
+    assert.Equal(t, gb.get8Reg(F), uint8(0x10)) // C_FLAG is set
+}
+
+func TestADD_a_hl(t *testing.T) {
+    // N_FLAG is always reset
+    gb := initGameboy()
+    gb.ADD_a_hl([1]uint8{0x86}) // ADD A HL
+    assert.Equal(t, gb.get8Reg(A), uint8(0x0))
+    assert.Equal(t, gb.get8Reg(F), uint8(0x80)) // Z_FLAG is set
+
+    gb.set8Reg(A, 0x0a)
+    gb.set16Reg(HL, 0xff85)
+    gb.mainMemory.write(0xff85, 0x0c)
+    gb.ADD_a_hl([1]uint8{0x86}) // ADD A HL
+    assert.Equal(t, gb.get8Reg(A), uint8(0x16))
+    assert.Equal(t, gb.get8Reg(F), uint8(0x20)) // H_FLAG is set
+
+    gb.set8Reg(A, 0xf0)
+    gb.set16Reg(HL, 0xff85)
+    gb.mainMemory.write(0xff85, 0xf0)
+    gb.ADD_a_hl([1]uint8{0x86}) // ADD A HL
+    assert.Equal(t, gb.get8Reg(A), uint8(0xe0))
+    assert.Equal(t, gb.get8Reg(F), uint8(0x10)) // C_FLAG is set
+}
+
+func TestADC_a_r(t *testing.T) {
+    gb := initGameboy()
+    // N_FLAG is always reset
+    gb.ADC_a_r([1]uint8{0x88}) // ADC A B
+    assert.Equal(t, gb.get8Reg(A), uint8(0x0))
+    assert.Equal(t, gb.get8Reg(F), uint8(0x80)) // Z_FLAG is set
+
+    gb.set8Reg(A, 0x0a)
+    gb.set8Reg(B, 0x0c)
+    gb.set8Reg(F, 0x10)
+    gb.ADC_a_r([1]uint8{0x88}) // ADC A B
+    assert.Equal(t, gb.get8Reg(A), uint8(0x17))
+    assert.Equal(t, gb.get8Reg(F), uint8(0x20)) // H_FLAG is set
+
+    gb.set8Reg(A, 0xf0)
+    gb.set8Reg(B, 0xf0)
+    gb.set8Reg(F, 0x10)
+    gb.ADC_a_r([1]uint8{0x88}) // ADC A B
+    assert.Equal(t, gb.get8Reg(A), uint8(0xe1))
+    assert.Equal(t, gb.get8Reg(F), uint8(0x10)) // C_FLAG is set
+}
+
+func TestADC_a_n(t *testing.T) {
+    // N_FLAG is always reset
+    gb := initGameboy()
+    gb.ADC_a_n([2]uint8{0xce, 0x00}) // ADC A 0x00
+    assert.Equal(t, gb.get8Reg(A), uint8(0x00))
+    assert.Equal(t, gb.get8Reg(F), uint8(0x80)) // Z_FLAG is set
+
+    gb.set8Reg(A, 0x0a)
+    gb.set8Reg(F, 0x10)
+    gb.ADC_a_n([2]uint8{0xce, 0x0c}) // ADC A 0x0c
+    assert.Equal(t, gb.get8Reg(A), uint8(0x17))
+    assert.Equal(t, gb.get8Reg(F), uint8(0x20)) // H_FLAG is set
+
+    gb.set8Reg(A, 0xf0)
+    gb.set8Reg(F, 0x10)
+    gb.ADC_a_n([2]uint8{0xce, 0xf0}) // ADC A 0xf0
+    assert.Equal(t, gb.get8Reg(A), uint8(0xe1))
+    assert.Equal(t, gb.get8Reg(F), uint8(0x10)) // C_FLAG is set
+}
+
+func TestADC_a_hl(t *testing.T) {
+    // N_FLAG is always reset
+    gb := initGameboy()
+    gb.ADC_a_hl([1]uint8{0x8e}) // ADC A HL
+    assert.Equal(t, gb.get8Reg(A), uint8(0x0))
+    assert.Equal(t, gb.get8Reg(F), uint8(0x80)) // Z_FLAG is set
+
+    gb.set8Reg(A, 0x0a)
+    gb.set8Reg(F, 0x10)
+    gb.set16Reg(HL, 0xff85)
+    gb.mainMemory.write(0xff85, 0x0c)
+    gb.ADC_a_hl([1]uint8{0x8e}) // ADC A HL
+    assert.Equal(t, gb.get8Reg(A), uint8(0x17))
+    assert.Equal(t, gb.get8Reg(F), uint8(0x20)) // H_FLAG is set
+
+    gb.set8Reg(A, 0xf0)
+    gb.set8Reg(F, 0x10)
+    gb.set16Reg(HL, 0xff85)
+    gb.mainMemory.write(0xff85, 0xf0)
+    gb.ADC_a_hl([1]uint8{0x8e}) // ADC A HL
+    assert.Equal(t, gb.get8Reg(A), uint8(0xe1))
+    assert.Equal(t, gb.get8Reg(F), uint8(0x10)) // C_FLAG is set
+}
