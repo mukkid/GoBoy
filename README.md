@@ -13,3 +13,5 @@ http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf
 http://openmymind.net/assets/go/go.pdf
 
 http://www.chrisantonellis.com/files/gameboy/gb-programming-manual.pdf
+
+http://bgb.bircd.org/pandocs.htm
