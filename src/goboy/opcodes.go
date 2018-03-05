@@ -635,6 +635,7 @@ func (gb *GameBoy) XOR_a_hl(ins [1]uint8) {
 	aVal := gb.get8Reg(A)
 	bVal := gb.mainMemory.read(address)
 	out := aVal ^ bVal
+	gb.set8Reg(A, out)
 	if out == 0 {
 		gb.modifyFlag(Z_FLAG, SET)
 	} else {
