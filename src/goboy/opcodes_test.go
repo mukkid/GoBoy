@@ -459,47 +459,47 @@ func TestSBC_a_hl(t *testing.T) {
 }
 
 func TestAND_a_r(t *testing.T) {
-    gb := initGameboy()
-    gb.set8Reg(A, 0xcc)
-    gb.set8Reg(B, 0xaf)
-    gb.AND_a_r([1]uint8{0xa0}) // AND A B
-    assert.Equal(t, gb.get8Reg(A), uint8(0x8c))
-    assert.Equal(t, gb.get8Reg(F), uint8(0x20)) // H_FLAG is set
+	gb := initGameboy()
+	gb.set8Reg(A, 0xcc)
+	gb.set8Reg(B, 0xaf)
+	gb.AND_a_r([1]uint8{0xa0}) // AND A B
+	assert.Equal(t, gb.get8Reg(A), uint8(0x8c))
+	assert.Equal(t, gb.get8Reg(F), uint8(0x20)) // H_FLAG is set
 
-    gb.set8Reg(A, 0x12)
-    gb.set8Reg(B, 0x00)
-    gb.AND_a_r([1]uint8{0xa0}) // AND A B
-    assert.Equal(t, gb.get8Reg(A), uint8(0x00))
-    assert.Equal(t, gb.get8Reg(F), uint8(0xa0)) // H_FLAG and Z_FLAG are set
+	gb.set8Reg(A, 0x12)
+	gb.set8Reg(B, 0x00)
+	gb.AND_a_r([1]uint8{0xa0}) // AND A B
+	assert.Equal(t, gb.get8Reg(A), uint8(0x00))
+	assert.Equal(t, gb.get8Reg(F), uint8(0xa0)) // H_FLAG and Z_FLAG are set
 }
 
 func TestAND_a_n(t *testing.T) {
-    gb := initGameboy()
-    gb.set8Reg(A, 0xcc)
-    gb.AND_a_n([2]uint8{0xe6, 0xaf}) // AND A 0xaf
-    assert.Equal(t, gb.get8Reg(A), uint8(0x8c))
-    assert.Equal(t, gb.get8Reg(F), uint8(0x20)) // H_FLAG is set
+	gb := initGameboy()
+	gb.set8Reg(A, 0xcc)
+	gb.AND_a_n([2]uint8{0xe6, 0xaf}) // AND A 0xaf
+	assert.Equal(t, gb.get8Reg(A), uint8(0x8c))
+	assert.Equal(t, gb.get8Reg(F), uint8(0x20)) // H_FLAG is set
 
-    gb.set8Reg(A, 0x12)
-    gb.set8Reg(B, 0x00)
-    gb.AND_a_n([2]uint8{0xe6, 0x00}) // AND A 0x00
-    assert.Equal(t, gb.get8Reg(A), uint8(0x00))
-    assert.Equal(t, gb.get8Reg(F), uint8(0xa0)) // H_FLAG and Z_FLAG are set
+	gb.set8Reg(A, 0x12)
+	gb.set8Reg(B, 0x00)
+	gb.AND_a_n([2]uint8{0xe6, 0x00}) // AND A 0x00
+	assert.Equal(t, gb.get8Reg(A), uint8(0x00))
+	assert.Equal(t, gb.get8Reg(F), uint8(0xa0)) // H_FLAG and Z_FLAG are set
 }
 
 func TestAND_a_hl(t *testing.T) {
-    gb := initGameboy()
-    gb.set8Reg(A, 0xcc)
-    gb.set16Reg(HL, 0xff85)
-    gb.mainMemory.write(0xff85, 0xaf)
-    gb.AND_a_hl([1]uint8{0xa6})
-    assert.Equal(t, gb.get8Reg(A), uint8(0x8c))
-    assert.Equal(t, gb.get8Reg(F), uint8(0x20)) // H_FLAG is set
+	gb := initGameboy()
+	gb.set8Reg(A, 0xcc)
+	gb.set16Reg(HL, 0xff85)
+	gb.mainMemory.write(0xff85, 0xaf)
+	gb.AND_a_hl([1]uint8{0xa6})
+	assert.Equal(t, gb.get8Reg(A), uint8(0x8c))
+	assert.Equal(t, gb.get8Reg(F), uint8(0x20)) // H_FLAG is set
 
-    gb.set8Reg(A, 0x12)
-    gb.set16Reg(HL, 0xff85)
-    gb.mainMemory.write(0xff85, 0x00)
-    gb.AND_a_hl([1]uint8{0xa6})
-    assert.Equal(t, gb.get8Reg(A), uint8(0x00))
-    assert.Equal(t, gb.get8Reg(F), uint8(0xa0)) // H_FLAG and Z_FLAG are set
+	gb.set8Reg(A, 0x12)
+	gb.set16Reg(HL, 0xff85)
+	gb.mainMemory.write(0xff85, 0x00)
+	gb.AND_a_hl([1]uint8{0xa6})
+	assert.Equal(t, gb.get8Reg(A), uint8(0x00))
+	assert.Equal(t, gb.get8Reg(F), uint8(0xa0)) // H_FLAG and Z_FLAG are set
 }
