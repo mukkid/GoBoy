@@ -178,3 +178,313 @@ func (gb *GameBoy) POP_qq(ins [1]uint8) {
     gb.set16Reg(reg, val)
     gb.regs[PC] += 1
 }
+
+// ADD A, r
+func (gb *GameBoy) ADD_a_r(ins [1]uint8) {
+    r := Reg8ID(ins[0] & 0x07)
+    aVal := gb.get8Reg(A)
+    bVal := gb.get8Reg(r)
+    out := aVal + bVal
+    gb.set8Reg(A, out)
+    if (aVal & 0x0f) + (bVal & 0x0f) > 0x0f {
+        gb.modifyFlag(H_FLAG, SET)
+    } else {
+        gb.modifyFlag(H_FLAG, CLEAR)
+    }
+    if out == 0 {
+        gb.modifyFlag(Z_FLAG, SET)
+    } else {
+        gb.modifyFlag(Z_FLAG, CLEAR)
+    }
+    gb.modifyFlag(N_FLAG, CLEAR)
+    if (uint16(aVal) + uint16(bVal)) > 0xff {
+        gb.modifyFlag(C_FLAG, SET)
+    } else {
+        gb.modifyFlag(C_FLAG, CLEAR)
+    }
+    gb.regs[PC] += uint16(len(ins))
+}
+
+// ADD A, n
+func (gb *GameBoy) ADD_a_n(ins [2]uint8) {
+    aVal := gb.get8Reg(A)
+    bVal := ins[1]
+    out := aVal + bVal
+    gb.set8Reg(A, out)
+    if (aVal & 0x0f) + (bVal & 0x0f) > 0x0f {
+        gb.modifyFlag(H_FLAG, SET)
+    } else {
+        gb.modifyFlag(H_FLAG, CLEAR)
+    }
+    if (uint16(aVal) + uint16(bVal)) > 0xff {
+        gb.modifyFlag(C_FLAG, SET)
+    } else {
+        gb.modifyFlag(C_FLAG, CLEAR)
+    }
+    if out == 0 {
+        gb.modifyFlag(Z_FLAG, SET)
+    } else {
+        gb.modifyFlag(Z_FLAG, CLEAR)
+    }
+    gb.modifyFlag(N_FLAG, CLEAR)
+    gb.regs[PC] += uint16(len(ins))
+}
+
+// ADD A, (HL)
+func (gb *GameBoy) ADD_a_hl(ins [1]uint8) {
+    aVal := gb.get8Reg(A)
+    bVal := gb.mainMemory.read(gb.get16Reg(HL))
+    out := aVal + bVal
+    gb.set8Reg(A, out)
+    if (aVal & 0x0f) + (bVal & 0x0f) > 0x0f {
+        gb.modifyFlag(H_FLAG, SET)
+    } else {
+        gb.modifyFlag(H_FLAG, CLEAR)
+    }
+    if (uint16(aVal) + uint16(bVal)) > 0xff {
+        gb.modifyFlag(C_FLAG, SET)
+    } else {
+        gb.modifyFlag(C_FLAG, CLEAR)
+    }
+    if out == 0 {
+        gb.modifyFlag(Z_FLAG, SET)
+    } else {
+        gb.modifyFlag(Z_FLAG, CLEAR)
+    }
+    gb.modifyFlag(N_FLAG, CLEAR)
+    gb.regs[PC] += uint16(len(ins))
+}
+
+// ADC A, r
+func (gb *GameBoy) ADC_a_r(ins [1]uint8) {
+    r := Reg8ID(ins[0] & 0x07)
+    aVal := gb.get8Reg(A)
+    bVal := gb.get8Reg(r)
+    c := gb.get8Reg(F) & uint8(C_FLAG) >> 4
+    out := aVal + bVal + c
+    gb.set8Reg(A, out)
+    if (aVal & 0x0f) + (bVal & 0x0f) > 0x0f {
+        gb.modifyFlag(H_FLAG, SET)
+    } else {
+        gb.modifyFlag(H_FLAG, CLEAR)
+    }
+    if (uint16(aVal) + uint16(bVal)) > 0xff {
+        gb.modifyFlag(C_FLAG, SET)
+    } else {
+        gb.modifyFlag(C_FLAG, CLEAR)
+    }
+    if out == 0 {
+        gb.modifyFlag(Z_FLAG, SET)
+    } else {
+        gb.modifyFlag(Z_FLAG, CLEAR)
+    }
+    gb.modifyFlag(N_FLAG, CLEAR)
+    gb.regs[PC] += uint16(len(ins))
+}
+
+// ADC A, n
+func (gb *GameBoy) ADC_a_n(ins [2]uint8) {
+    aVal := gb.get8Reg(A)
+    bVal := ins[1]
+    c := gb.get8Reg(F) & uint8(C_FLAG) >> 4
+    out := aVal + bVal + c
+    gb.set8Reg(A, out)
+    if (aVal & 0x0f) + (bVal & 0x0f) > 0x0f {
+        gb.modifyFlag(H_FLAG, SET)
+    } else {
+        gb.modifyFlag(H_FLAG, CLEAR)
+    }
+    if (uint16(aVal) + uint16(bVal)) > 0xff {
+        gb.modifyFlag(C_FLAG, SET)
+    } else {
+        gb.modifyFlag(C_FLAG, CLEAR)
+    }
+    if out == 0 {
+        gb.modifyFlag(Z_FLAG, SET)
+    } else {
+        gb.modifyFlag(Z_FLAG, CLEAR)
+    }
+    gb.modifyFlag(N_FLAG, CLEAR)
+    gb.regs[PC] += uint16(len(ins))
+}
+
+// ADC A, (HL)
+func (gb *GameBoy) ADC_a_hl(ins [1]uint8) {
+    aVal := gb.get8Reg(A)
+    bVal := gb.mainMemory.read(gb.get16Reg(HL))
+    c := gb.get8Reg(F) & uint8(C_FLAG) >> 4
+    out := aVal + bVal + c
+    gb.set8Reg(A, out)
+    if (aVal & 0x0f) + (bVal & 0x0f) > 0x0f {
+        gb.modifyFlag(H_FLAG, SET)
+    } else {
+        gb.modifyFlag(H_FLAG, CLEAR)
+    }
+    if (uint16(aVal) + uint16(bVal)) > 0xff {
+        gb.modifyFlag(C_FLAG, SET)
+    } else {
+        gb.modifyFlag(C_FLAG, CLEAR)
+    }
+    if out == 0 {
+        gb.modifyFlag(Z_FLAG, SET)
+    } else {
+        gb.modifyFlag(Z_FLAG, CLEAR)
+    }
+    gb.modifyFlag(N_FLAG, CLEAR)
+    gb.regs[PC] += uint16(len(ins))
+}
+
+// SUB A, r
+func (gb *GameBoy) SUB_a_r(ins [1]uint8) {
+    r := Reg8ID(ins[0] & 0x07)
+    aVal := gb.get8Reg(A)
+    bVal := gb.get8Reg(r)
+    out := aVal - bVal
+    gb.set8Reg(A, out)
+    if aVal < bVal {
+        gb.modifyFlag(C_FLAG, SET)
+    } else {
+        gb.modifyFlag(C_FLAG, CLEAR)
+    }
+    if aVal & 0x0f < bVal & 0x0f {
+        gb.modifyFlag(H_FLAG, SET)
+    } else {
+        gb.modifyFlag(H_FLAG, CLEAR)
+    }
+    if out == 0 {
+        gb.modifyFlag(Z_FLAG, SET)
+    } else {
+        gb.modifyFlag(Z_FLAG, CLEAR)
+    }
+    gb.modifyFlag(N_FLAG, SET)
+    gb.regs[PC] += uint16(len(ins))
+}
+
+// SUB A, n
+func (gb *GameBoy) SUB_a_n(ins [2]uint8) {
+    aVal := gb.get8Reg(A)
+    bVal := ins[1]
+    out := aVal - bVal
+    gb.set8Reg(A, out)
+    if aVal < bVal {
+        gb.modifyFlag(C_FLAG, SET)
+    } else {
+        gb.modifyFlag(C_FLAG, CLEAR)
+    }
+    if aVal & 0x0f < bVal & 0x0f {
+        gb.modifyFlag(H_FLAG, SET)
+    } else {
+        gb.modifyFlag(H_FLAG, CLEAR)
+    }
+    if out == 0 {
+        gb.modifyFlag(Z_FLAG, SET)
+    } else {
+        gb.modifyFlag(Z_FLAG, CLEAR)
+    }
+    gb.modifyFlag(N_FLAG, SET)
+    gb.regs[PC] += uint16(len(ins))
+}
+
+// SUB A, (HL)
+func (gb *GameBoy) SUB_a_hl(ins [1]uint8) {
+    aVal := gb.get8Reg(A)
+    bVal := gb.mainMemory.read(gb.get16Reg(HL))
+    out := aVal - bVal
+    gb.set8Reg(A, out)
+    if aVal < bVal {
+        gb.modifyFlag(C_FLAG, SET)
+    } else {
+        gb.modifyFlag(C_FLAG, CLEAR)
+    }
+    if aVal & 0x0f < bVal & 0x0f {
+        gb.modifyFlag(H_FLAG, SET)
+    } else {
+        gb.modifyFlag(H_FLAG, CLEAR)
+    }
+    if out == 0 {
+        gb.modifyFlag(Z_FLAG, SET)
+    } else {
+        gb.modifyFlag(Z_FLAG, CLEAR)
+    }
+    gb.modifyFlag(N_FLAG, SET)
+    gb.regs[PC] += uint16(len(ins))
+}
+
+// SBC A, r
+func (gb *GameBoy) SBC_a_r(ins [1]uint8) {
+    r := Reg8ID(ins[0] & 0x07)
+    aVal := gb.get8Reg(A)
+    bVal := gb.get8Reg(r)
+    c := gb.get8Reg(F) & uint8(C_FLAG) >> 4
+    out := aVal - (bVal + c)
+    gb.set8Reg(A, out)
+    if aVal < (bVal + c) {
+        gb.modifyFlag(C_FLAG, SET)
+    } else {
+        gb.modifyFlag(C_FLAG, CLEAR)
+    }
+    if aVal & 0x0f < (bVal + c) & 0x0f {
+        gb.modifyFlag(H_FLAG, SET)
+    } else {
+        gb.modifyFlag(H_FLAG, CLEAR)
+    }
+    if out == 0 {
+        gb.modifyFlag(Z_FLAG, SET)
+    } else {
+        gb.modifyFlag(Z_FLAG, CLEAR)
+    }
+    gb.modifyFlag(N_FLAG, SET)
+    gb.regs[PC] += uint16(len(ins))
+}
+
+// SBC A, n
+func (gb *GameBoy) SBC_a_n(ins [2]uint8) {
+    aVal := gb.get8Reg(A)
+    bVal := ins[1]
+    c := gb.get8Reg(F) & uint8(C_FLAG) >> 4
+    out := aVal -(bVal + c)
+    gb.set8Reg(A, out)
+    if aVal < (bVal + c) {
+        gb.modifyFlag(C_FLAG, SET)
+    } else {
+        gb.modifyFlag(C_FLAG, CLEAR)
+    }
+    if aVal & 0x0f < (bVal + c) & 0x0f {
+        gb.modifyFlag(H_FLAG, SET)
+    } else {
+        gb.modifyFlag(H_FLAG, CLEAR)
+    }
+    if out == 0 {
+        gb.modifyFlag(Z_FLAG, SET)
+    } else {
+        gb.modifyFlag(Z_FLAG, CLEAR)
+    }
+    gb.modifyFlag(N_FLAG, SET)
+    gb.regs[PC] += uint16(len(ins))
+}
+
+// SBC A, (HL)
+func (gb *GameBoy) SBC_a_hl(ins [1]uint8) {
+    aVal := gb.get8Reg(A)
+    bVal := gb.mainMemory.read(gb.get16Reg(HL))
+    c := gb.get8Reg(F) & uint8(C_FLAG) >> 4
+    out := aVal - (bVal + c)
+    gb.set8Reg(A, out)
+    if aVal < (bVal + c) {
+        gb.modifyFlag(C_FLAG, SET)
+    } else {
+        gb.modifyFlag(C_FLAG, CLEAR)
+    }
+    if aVal & 0x0f < (bVal + c) & 0x0f {
+        gb.modifyFlag(H_FLAG, SET)
+    } else {
+        gb.modifyFlag(H_FLAG, CLEAR)
+    }
+    if out == 0 {
+        gb.modifyFlag(Z_FLAG, SET)
+    } else {
+        gb.modifyFlag(Z_FLAG, CLEAR)
+    }
+    gb.modifyFlag(N_FLAG, SET)
+    gb.regs[PC] += uint16(len(ins))
+}
