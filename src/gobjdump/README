@@ -1,0 +1,10 @@
+Gobjdump is our own implementation of a Z80 disassembler.
+It implements the normal Z80 instruction set (without instruction prefixes) and the following extensions:
+    * instructions prefixed with 0xcb
+    * instructions prefixed with 0xed
+
+The examples/ directory contain sample Z80 binaries to test gobjdump. From the root of this repo try:
+```
+make
+bin/gobjdump src/gobjdump/examples/bin.z80
+```

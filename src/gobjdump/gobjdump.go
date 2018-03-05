@@ -1027,6 +1027,7 @@ func decodeInstruction(r *bufio.Reader) ([]uint8, []string, error) {
                         err = decodePrefixED(r, &instruction, &mnemonic)
                     case 0x30:
                         /* FD prefix */
+                        err = decodePrefixFD(r, &instruction, &mnemonic)
                     }
                 }
             case 0x06:
