@@ -1,4 +1,4 @@
-package GoBoy
+package main
 
 import "encoding/binary"
 
