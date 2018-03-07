@@ -1,4 +1,4 @@
-package GoBoy
+package main
 
 /*
  * Implements the ROM only cartridge, the simplest one
