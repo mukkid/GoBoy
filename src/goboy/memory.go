@@ -66,7 +66,7 @@ func (m *GBMem) read(addr uint16) uint8 {
 		return m.cartridge.readROM(addr)
 	} else if addr >= 0x8000 && addr < 0xa000 {
 		/* VRAM */
-		return uint8(0x00)
+		return m.vram[addr-0x8000]
 	} else if addr >= 0xa000 && addr < 0xc000 {
 		/* SRAM External RAM in cartridge, often battery buffered */
 		return m.cartridge.readRAM(addr)
@@ -108,6 +108,7 @@ func (m *GBMem) write(addr uint16, value uint8) {
 		m.cartridge.writeROM(addr, value)
 	} else if addr >= 0x8000 && addr < 0xa000 {
 		/* VRAM */
+		m.vram[addr-0x8000] = value
 	} else if addr >= 0xa000 && addr < 0xc000 {
 		/* SRAM External RAM in cartridge, often battery buffered */
 		m.cartridge.writeRAM(addr, value)
@@ -140,8 +141,9 @@ func (m *GBMem) write(addr uint16, value uint8) {
 /* Interface for the different cartridges */
 type GBCartridge interface {
 	/*
-	 * ROM - [0x4000, 0x8000)
-	 * RAM - [0xa000, 0xc000)
+	 * ROM  - [0x4000, 0x8000)
+	 * VRAM - [0x8000, 0x9FFF)
+	 * RAM  - [0xa000, 0xc000)
 	 */
 	readROM(addr uint16) uint8
 	readRAM(addr uint16) uint8
