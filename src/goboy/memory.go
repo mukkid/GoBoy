@@ -1,4 +1,4 @@
-package GoBoy
+package main
 
 type GBMem struct {
 	/* Work RAM at 0xc000 - 0xd000 */
