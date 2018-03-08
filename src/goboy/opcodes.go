@@ -835,3 +835,6 @@ func (gb *GameBoy) ADD_sp_e(ins [2]uint8) {
 	}
 	gb.regs[PC] += uint16(len(ins))
 }
+
+// TODO: Implement 16 bit INC
+// TODO: Implement 16 bit DEC
