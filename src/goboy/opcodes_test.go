@@ -30,7 +30,9 @@ func TestLD_r_n(t *testing.T) {
 
 func TestLD_r_hl(t *testing.T) {
 	gb := initGameboy()
-	gb.mainMemory.rom0[0x1234] = 0x42
+    gbROM := newGBROM()
+    gbROM.rom[0x1234] = 0x42
+    gb.mainMemory.cartridge = gbROM
 	memValue := gb.mainMemory.read(0x1234)
 	assert.Equal(t, memValue, uint8(0x42))
 	gb.set16Reg(HL, 0x1234)
@@ -55,7 +57,10 @@ func TestLD_hl_n(t *testing.T) {
 
 func TestLD_a_bc(t *testing.T) {
 	gb := initGameboy()
-	gb.mainMemory.rom0[0x1234] = 0x42
+    gbROM := newGBROM()
+    gbROM.rom[0x1234] = 0x42
+    gb.mainMemory.cartridge = gbROM
+
 	memValue := gb.mainMemory.read(0x1234)
 	assert.Equal(t, memValue, uint8(0x42))
 	gb.set16Reg(BC, 0x1234)
@@ -65,7 +70,9 @@ func TestLD_a_bc(t *testing.T) {
 
 func TestLD_a_de(t *testing.T) {
 	gb := initGameboy()
-	gb.mainMemory.rom0[0x1234] = 0x42
+    gbROM := newGBROM()
+    gbROM.rom[0x1234] = 0x42
+    gb.mainMemory.cartridge = gbROM
 	memValue := gb.mainMemory.read(0x1234)
 	assert.Equal(t, memValue, uint8(0x42))
 	gb.set16Reg(DE, 0x1234)
@@ -75,7 +82,10 @@ func TestLD_a_de(t *testing.T) {
 
 func TestLD_a_nn(t *testing.T) {
 	gb := initGameboy()
-	gb.mainMemory.rom0[0x1234] = 0x42
+    gbROM := newGBROM()
+    gbROM.rom[0x1234] = 0x42
+    gb.mainMemory.cartridge = gbROM
+
 	memValue := gb.mainMemory.read(0x1234)
 	assert.Equal(t, memValue, uint8(0x42))
 	gb.LD_a_nn([3]uint8{0x3a, 0x34, 0x12}) // LD A (0x1234)
@@ -116,16 +126,21 @@ func TestLD_dd_nn(t *testing.T) {
 
 func TestLD_hl_nn(t *testing.T) {
 	gb := initGameboy()
-	gb.mainMemory.rom0[0x0123] = 0x37
-	gb.mainMemory.rom0[0x0124] = 0xa1
+
+    gbROM := newGBROM()
+    gbROM.rom[0x0123] = 0x37
+    gbROM.rom[0x0124] = 0xa1
+    gb.mainMemory.cartridge = gbROM
 	gb.LD_hl_nn([3]uint8{0x2a, 0x23, 0x01}) // LD HL <- (0x0123)
 	assert.Equal(t, gb.get16Reg(HL), uint16(0xa137))
 }
 
 func TestLD_dd_NN(t *testing.T) {
 	gb := initGameboy()
-	gb.mainMemory.rom0[0x0123] = 0xcd
-	gb.mainMemory.rom0[0x0124] = 0xab
+    gbROM := newGBROM()
+    gbROM.rom[0x0123] = 0xcd
+    gbROM.rom[0x0124] = 0xab
+    gb.mainMemory.cartridge = gbROM
 	gb.LD_dd_NN([4]uint8{0xed, 0x5b, 0x23, 0x01}) // LD DE (0x0123)
 	assert.Equal(t, gb.get16Reg(DE), uint16(0xabcd))
 }
@@ -214,10 +229,11 @@ func TestADD_a_n(t *testing.T) {
 func TestADD_a_hl(t *testing.T) {
 	// N_FLAG is always reset
 	gb := initGameboy()
+    gbROM := newGBROM()
+    gb.mainMemory.cartridge = gbROM
 	gb.ADD_a_hl([1]uint8{0x86}) // ADD A HL
 	assert.Equal(t, gb.get8Reg(A), uint8(0x0))
 	assert.Equal(t, gb.get8Reg(F), uint8(0x80)) // Z_FLAG is set
-
 	gb.set8Reg(A, 0x0a)
 	gb.set16Reg(HL, 0xff85)
 	gb.mainMemory.write(0xff85, 0x0c)
@@ -278,6 +294,8 @@ func TestADC_a_n(t *testing.T) {
 func TestADC_a_hl(t *testing.T) {
 	// N_FLAG is always reset
 	gb := initGameboy()
+    gbROM := newGBROM()
+    gb.mainMemory.cartridge = gbROM
 	gb.ADC_a_hl([1]uint8{0x8e}) // ADC A HL
 	assert.Equal(t, gb.get8Reg(A), uint8(0x0))
 	assert.Equal(t, gb.get8Reg(F), uint8(0x80)) // Z_FLAG is set
@@ -348,6 +366,8 @@ func TestSUB_a_n(t *testing.T) {
 
 func TestSUB_a_hl(t *testing.T) {
 	gb := initGameboy()
+    gbROM := newGBROM()
+    gb.mainMemory.cartridge = gbROM
 	gb.SUB_a_hl([1]uint8{0x96})
 	assert.Equal(t, gb.get8Reg(A), uint8(0x00))
 	assert.Equal(t, gb.get8Reg(F), uint8(0xc0)) // Z_FLAG and N_FLAG is set
@@ -429,6 +449,8 @@ func TestSBC_a_n(t *testing.T) {
 
 func TestSBC_a_hl(t *testing.T) {
 	gb := initGameboy()
+    gbROM := newGBROM()
+    gb.mainMemory.cartridge = gbROM
 	gb.SBC_a_hl([1]uint8{0x9e})
 	assert.Equal(t, gb.get8Reg(A), uint8(0x00))
 	assert.Equal(t, gb.get8Reg(F), uint8(0xc0)) // Z_FLAG and N_FLAG is set

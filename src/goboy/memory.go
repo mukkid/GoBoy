@@ -7,7 +7,6 @@ type GBMem struct {
 	/* HRAM: 0xff80 - 0xfffe */
 	hram [127]uint8
 	/* ROM bank 0, nonswitchable - I believe this means this bank is static */
-	rom0      [16 * 1024]uint8
 	cartridge GBCartridge
 }
 
@@ -59,10 +58,7 @@ const (
  * Or 0x8000 < n bytes
  */
 func (m *GBMem) read(addr uint16) uint8 {
-	if addr >= 0x0000 && addr < 0x4000 {
-		/* non-switchable ROM Bank */
-		return m.rom0[addr]
-	} else if addr >= 0x4000 && addr < 0x8000 {
+	if addr >= 0x0000 && addr < 0x8000 {
 		return m.cartridge.readROM(addr)
 	} else if addr >= 0x8000 && addr < 0xa000 {
 		/* VRAM */
@@ -138,6 +134,10 @@ func (m *GBMem) write(addr uint16, value uint8) {
 	}
 }
 
+func (m *GBMem) loadROM(data []uint8) {
+    m.cartridge.loadROM(data)
+}
+
 /* Interface for the different cartridges */
 type GBCartridge interface {
 	/*
@@ -145,6 +145,7 @@ type GBCartridge interface {
 	 * VRAM - [0x8000, 0x9FFF)
 	 * RAM  - [0xa000, 0xc000)
 	 */
+    loadROM(data []uint8) error
 	readROM(addr uint16) uint8
 	readRAM(addr uint16) uint8
 	writeROM(addr uint16, data uint8)
