@@ -12,6 +12,7 @@ all: | $(BIN)
 	go get -u github.com/go-gl/glfw/v3.2/glfw
 	go get "github.com/hajimehoshi/ebiten"
 	go build -o $(BIN)/goboy ./src/goboy
+	go get "github.com/pborman/getopt/v2"
 	go build -o $(BIN)/gobjdump ./src/gobjdump
 
 .PHONY: test

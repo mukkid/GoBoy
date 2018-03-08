@@ -22,16 +22,16 @@ type Z80AsmError struct {
 }
 
 func (e *Z80AsmError) Error() string {
-	switch e.errorType {
-	case Z80AsmErrorIllegalInstruction:
-		return "Error: Illegal Instruction"
-	case Z80AsmErrorUnimplementedInstruction:
-		return "Error: Unimplemented Instruction"
-	case Z80AsmErrorMalformedInstruction:
-		return "Error: Malformed Instruction"
-	default:
-		return "Error: Unknown"
-	}
+    switch e.errorType {
+    case Z80AsmErrorIllegalInstruction:
+        return "Illegal Instruction"
+    case Z80AsmErrorUnimplementedInstruction:
+        return "Unimplemented Instruction"
+    case Z80AsmErrorMalformedInstruction:
+        return "Malformed Instruction"
+    default:
+        return "Unknown"
+    }
 }
 
 var r8 = []string{
@@ -610,129 +610,131 @@ func decodePrefixCB(r *bufio.Reader, instruction *[]uint8, mnemonic *[]string) e
 }
 
 func decodePrefixED(r *bufio.Reader, instruction *[]uint8, mnemonic *[]string) error {
-	nextByte, err := r.ReadByte()
-	if err != nil {
-		return &Z80AsmError{errorType: Z80AsmErrorMalformedInstruction}
-	}
-	*instruction = append(*instruction, nextByte)
-	switch nextByte & 0xc0 {
-	case 0x00:
-		err = &Z80AsmError{errorType: Z80AsmErrorIllegalInstruction}
-	case 0x40:
-		switch nextByte & 0x07 {
-		case 0x00:
-			switch nextByte & 0x38 {
-			case 0x30:
-				/* in [c] */
-				decodeIN_C(r, instruction, mnemonic)
-			default:
-				/* in r8, [c] */
-				decodeIN_r8_C(r, instruction, mnemonic)
-			}
-		case 0x01:
-			switch nextByte & 0x38 {
-			case 0x30:
-				/* out [c], 0 */
-				decodeOUT_C(r, instruction, mnemonic)
-			default:
-				/* out [c], r8 */
-				decodeOUT_r8_C(r, instruction, mnemonic)
-			}
-		case 0x02:
-			switch nextByte & 0x08 {
-			case 0x00:
-				/* sbc hl, r16 */
-				decodeSBC_HL_r16(r, instruction, mnemonic)
-			case 0x08:
-				/* adc hl, r16 */
-				decodeADC_HL_r16(r, instruction, mnemonic)
-			}
-		case 0x03:
-			switch nextByte & 0x08 {
-			case 0x00:
-				/* ld [nn], r16 */
-				err = decodeLD_nn_r16(r, instruction, mnemonic)
-			case 0x08:
-				/* ld r16, [nn] */
-				err = decodeLD_r16_nn_addr(r, instruction, mnemonic)
-			}
-		case 0x04:
-			switch nextByte & 0x38 {
-			case 0x00:
-				/* neg */
-				*mnemonic = append(*mnemonic, "neg")
-			default:
-				err = &Z80AsmError{errorType: Z80AsmErrorIllegalInstruction}
-			}
-		case 0x05:
-			switch nextByte & 0x38 {
-			case 0x00:
-				/* retn */
-				*mnemonic = append(*mnemonic, "retn")
-			case 0x08:
-				/* reti */
-				*mnemonic = append(*mnemonic, "reti")
-			default:
-				err = &Z80AsmError{errorType: Z80AsmErrorIllegalInstruction}
-			}
-		case 0x06:
-			/* im mode */
-			decodeIM_im(r, instruction, mnemonic)
-		case 0x07:
-			switch nextByte & 0x38 {
-			case 0x00:
-				/* ld i, a */
-				decodeLD_dst_src("i", "a", r, instruction, mnemonic)
-			case 0x08:
-				/* ld r, a */
-				decodeLD_dst_src("r", "a", r, instruction, mnemonic)
-			case 0x10:
-				/* ld a, i */
-				decodeLD_dst_src("a", "i", r, instruction, mnemonic)
-			case 0x18:
-				/* ld a, r */
-				decodeLD_dst_src("a", "r", r, instruction, mnemonic)
-			case 0x20:
-				/* rrd */
-				*mnemonic = append(*mnemonic, "rrd")
-			case 0x28:
-				/* rld */
-				*mnemonic = append(*mnemonic, "rld")
-			case 0x30:
-				/* nop */
-				*mnemonic = append(*mnemonic, "nop")
-			case 0x38:
-				/* nop */
-				*mnemonic = append(*mnemonic, "nop")
-			}
-		}
-	case 0x80:
-		switch nextByte & 0x07 {
-		case 0x00:
-			fallthrough
-		case 0x01:
-			fallthrough
-		case 0x02:
-			fallthrough
-		case 0x03:
-			switch nextByte & 0x38 {
-			case 0x20:
-				fallthrough
-			case 0x28:
-				fallthrough
-			case 0x30:
-				fallthrough
-			case 0x38:
-				/* assorted block instructions */
-				decodeBLI(r, instruction, mnemonic)
-			default:
-				err = &Z80AsmError{errorType: Z80AsmErrorIllegalInstruction}
-			}
-		}
-	case 0xc0:
-		err = &Z80AsmError{errorType: Z80AsmErrorIllegalInstruction}
-	}
-	return err
+    nextByte, err := r.ReadByte()
+    if err != nil {
+        return &Z80AsmError{errorType: Z80AsmErrorMalformedInstruction}
+    }
+    *instruction = append(*instruction, nextByte)
+    switch nextByte & 0xc0 {
+    case 0x00:
+        err = &Z80AsmError{errorType: Z80AsmErrorIllegalInstruction}
+    case 0x40:
+        switch nextByte & 0x07 {
+        case 0x00:
+            switch nextByte & 0x38 {
+            case 0x30:
+                /* in [c] */
+                decodeIN_C(r, instruction, mnemonic)
+            default:
+                /* in r8, [c] */
+                decodeIN_r8_C(r, instruction, mnemonic)
+            }
+        case 0x01:
+            switch nextByte & 0x38 {
+            case 0x30:
+                /* out [c], 0 */
+                decodeOUT_C(r, instruction, mnemonic)
+            default:
+                /* out [c], r8 */
+                decodeOUT_r8_C(r, instruction, mnemonic)
+            }
+        case 0x02:
+            switch nextByte & 0x08 {
+            case 0x00:
+                /* sbc hl, r16 */
+                decodeSBC_HL_r16(r, instruction, mnemonic)
+            case 0x08:
+                /* adc hl, r16 */
+                decodeADC_HL_r16(r, instruction, mnemonic)
+            }
+        case 0x03:
+            switch nextByte & 0x08 {
+            case 0x00:
+                /* ld [nn], r16 */
+                err = decodeLD_nn_r16(r, instruction, mnemonic)
+            case 0x08:
+                /* ld r16, [nn] */
+                err = decodeLD_r16_nn_addr(r, instruction, mnemonic)
+            }
+        case 0x04:
+            switch nextByte & 0x38 {
+            case 0x00:
+                /* neg */
+                *mnemonic = append(*mnemonic, "neg")
+            default:
+                err = &Z80AsmError{errorType: Z80AsmErrorIllegalInstruction}
+            }
+        case 0x05:
+            switch nextByte & 0x38 {
+            case 0x00:
+                /* retn */
+                *mnemonic = append(*mnemonic, "retn")
+            case 0x08:
+                /* reti */
+                *mnemonic = append(*mnemonic, "reti")
+            default:
+                err = &Z80AsmError{errorType: Z80AsmErrorIllegalInstruction}
+            }
+        case 0x06:
+            /* im mode */
+            decodeIM_im(r, instruction, mnemonic)
+        case 0x07:
+            switch nextByte & 0x38 {
+            case 0x00:
+                /* ld i, a */
+                decodeLD_dst_src("i", "a", r, instruction, mnemonic)
+            case 0x08:
+                /* ld r, a */
+                decodeLD_dst_src("r", "a", r, instruction, mnemonic)
+            case 0x10:
+                /* ld a, i */
+                decodeLD_dst_src("a", "i", r, instruction, mnemonic)
+            case 0x18:
+                /* ld a, r */
+                decodeLD_dst_src("a", "r", r, instruction, mnemonic)
+            case 0x20:
+                /* rrd */
+                *mnemonic = append(*mnemonic, "rrd")
+            case 0x28:
+                /* rld */
+                *mnemonic = append(*mnemonic, "rld")
+            case 0x30:
+                /* nop */
+                *mnemonic = append(*mnemonic, "nop")
+            case 0x38:
+                /* nop */
+                *mnemonic = append(*mnemonic, "nop")
+            }
+        }
+    case 0x80:
+        switch nextByte & 0x07 {
+        case 0x00:
+            fallthrough
+        case 0x01:
+            fallthrough
+        case 0x02:
+            fallthrough
+        case 0x03:
+            switch nextByte & 0x38 {
+            case 0x20:
+                fallthrough
+            case 0x28:
+                fallthrough
+            case 0x30:
+                fallthrough
+            case 0x38:
+                /* assorted block instructions */
+                decodeBLI(r, instruction, mnemonic)
+            default:
+                err = &Z80AsmError{errorType: Z80AsmErrorIllegalInstruction}
+            }
+        default:
+            err = &Z80AsmError{errorType: Z80AsmErrorIllegalInstruction}
+        }
+    case 0xc0:
+        err = &Z80AsmError{errorType: Z80AsmErrorIllegalInstruction}
+    }
+    return err
 }
 
 func decodePrefixDDCB(r *bufio.Reader, instruction *[]uint8, mnemonic *[]string) error {
@@ -790,275 +792,282 @@ func decodePrefixDD(r *bufio.Reader, instruction *[]uint8, mnemonic *[]string) e
  * returns: the instruction bytes, the instruction mnemonic as an array of tokens
  */
 func decodeInstruction(r *bufio.Reader) ([]uint8, []string, error) {
-	/* If EOF, return empty string */
-	var instruction []uint8
-	nextByte, err := r.ReadByte()
-	if err != nil {
-		if err == io.EOF {
-			return nil, nil, nil
-		}
-	}
+    /* If EOF, return empty string */
+    var instruction []uint8
+    nextByte, err := r.ReadByte()
+    if err != nil {
+        if err == io.EOF {
+            return nil, nil, nil
+        }
+    }
 
-	instruction = append(instruction, nextByte)
-	var mnemonic []string
+    instruction = append(instruction, nextByte)
+    var mnemonic []string;
 
-	/* Switch on bits 6-7 */
-	switch nextByte & 0xc0 {
-	case 0x00:
-		/* Switch on bits 0-2 */
-		switch nextByte & 0x07 {
-		case 0x00:
-			/* Switch on bits 3-5 */
-			switch nextByte & 0x38 {
-			case 0x00:
-				/* nop */
-				mnemonic = append(mnemonic, "nop")
-			case 0x08:
-				/* ex af,af' */
-				/* Not implemented in GB */
-				mnemonic = append(mnemonic, "ex")
-				mnemonic = append(mnemonic, "af")
-				mnemonic = append(mnemonic, "af'")
-			case 0x10:
-				/*
-				 * djnz x
-				 * Not implemented in GB
-				 */
-				err = decodeDJNZ(r, &instruction, &mnemonic)
-			case 0x18:
-				/*
-				 * jr E - jump to PC + E
-				 */
-				err = decodeJR_E(r, &instruction, &mnemonic)
-			default:
-				/* jr nz|z|nc|c, E*/
-				err = decodeJR_cond_E(r, &instruction, &mnemonic)
-			}
-		case 0x01:
-			/* switch on bit 3 */
-			switch nextByte & 0x08 {
-			case 0x00:
-				/* ld rp[p], nn */
-				err = decodeLD_r16_nn(r, &instruction, &mnemonic)
-			case 0x08:
-				/* add hl, rp[p] */
-				decodeADD_hl_r16(r, &instruction, &mnemonic)
-			}
-		case 0x02:
-			/* switch on bit 3 */
-			switch nextByte & 0x08 {
-			case 0x00:
-				/* switch on bits 4-5 */
-				switch nextByte & 0x30 {
-				case 0x00:
-					/* ld [bc], a */
-					decodeLD_BC_A(r, &instruction, &mnemonic)
-				case 0x10:
-					/* ld [de], a */
-					decodeLD_DE_A(r, &instruction, &mnemonic)
-				case 0x20:
-					/* ld [nn], hl */
-					err = decodeLD_nn_HL(r, &instruction, &mnemonic)
-				case 0x30:
-					/* ld [nn], a */
-					err = decodeLD_nn_A(r, &instruction, &mnemonic)
-				}
-			case 0x08:
-				/* switch on bits 4-5 */
-				switch nextByte & 0x30 {
-				case 0x00:
-					/* ld a, [bc] */
-					decodeLD_A_BC(r, &instruction, &mnemonic)
-				case 0x10:
-					/* ld a, [de] */
-					decodeLD_A_DE(r, &instruction, &mnemonic)
-				case 0x20:
-					/* ld hl, [nn] */
-					err = decodeLD_HL_nn(r, &instruction, &mnemonic)
-				case 0x30:
-					/* ld a, [nn] */
-					err = decodeLD_A_nn(r, &instruction, &mnemonic)
-				}
-			}
-		case 0x03:
-			/* switch on bit 3 */
-			switch nextByte & 0x08 {
-			case 0x00:
-				/* inc r16 */
-				decodeINC_r16(r, &instruction, &mnemonic)
-			case 0x08:
-				/* dec r16 */
-				decodeDEC_r16(r, &instruction, &mnemonic)
-			}
-		case 0x04:
-			/* inc r8 */
-			decodeINC_r8(r, &instruction, &mnemonic)
-		case 0x05:
-			/* dec r8 */
-			decodeDEC_r8(r, &instruction, &mnemonic)
-		case 0x06:
-			/* ld r8, n */
-			err = decodeLD_r8_n(r, &instruction, &mnemonic)
-		case 0x07:
-			/* switch on bits 3-5 */
-			switch nextByte & 0x38 {
-			case 0x00:
-				/* RLCA */
-				mnemonic = append(mnemonic, "rlca")
-			case 0x08:
-				/* RRCA */
-				mnemonic = append(mnemonic, "rrca")
-			case 0x10:
-				/* RLA */
-				mnemonic = append(mnemonic, "rla")
-			case 0x18:
-				/* RRA */
-				mnemonic = append(mnemonic, "rra")
-			case 0x20:
-				/* DAA */
-				mnemonic = append(mnemonic, "daa")
-			case 0x28:
-				/* CPL */
-				mnemonic = append(mnemonic, "cpl")
-			case 0x30:
-				/* SCF */
-				mnemonic = append(mnemonic, "scf")
-			case 0x38:
-				/* CCF */
-				mnemonic = append(mnemonic, "ccf")
-			}
-		}
-	case 0x40:
-		switch nextByte & 0x07 {
-		case 0x6:
-			switch nextByte & 0x38 {
-			case 0x30:
-				/* halt */
-				mnemonic = append(mnemonic, "halt")
-			default:
-				/* ld r, r' */
-				decodeLD_r8_r8(r, &instruction, &mnemonic)
-			}
-		default:
-			/* ld r, r' */
-			decodeLD_r8_r8(r, &instruction, &mnemonic)
-		}
-	case 0x80:
-		/* assorted ALU instructions */
-		decodeALU_r8(r, &instruction, &mnemonic)
-	case 0xc0:
-		switch nextByte & 0x07 {
-		case 0x00:
-			/* ret CC - conditional return */
-			decodeRET_cc(r, &instruction, &mnemonic)
-		case 0x01:
-			switch nextByte & 0x08 {
-			case 0x00:
-				/* pop r16 */
-				decodePOP_r16(r, &instruction, &mnemonic)
-			case 0x08:
-				switch nextByte & 0x30 {
-				case 0x00:
-					/* ret */
-					mnemonic = append(mnemonic, "ret")
-				case 0x10:
-					/* exx */
-					mnemonic = append(mnemonic, "exx")
-				case 0x20:
-					/* jp hl */
-					decodeJP_HL(r, &instruction, &mnemonic)
-				case 0x30:
-					/* ld sp, hl */
-					decodeLD_SP_HL(r, &instruction, &mnemonic)
-				}
-			}
-		case 0x02:
-			/* jp cc, nn - conditional absolute jump */
-			err = decodeJP_cc_nn(r, &instruction, &mnemonic)
-		case 0x03:
-			switch nextByte & 0x38 {
-			case 0x00:
-				/* jp nn */
-				err = decodeJP_nn(r, &instruction, &mnemonic)
-			case 0x08:
-				/* 0xcb prefix */
-				err = decodePrefixCB(r, &instruction, &mnemonic)
-			case 0x10:
-				/* out n, a */
-				err = decodeOUT_n_A(r, &instruction, &mnemonic)
-			case 0x18:
-				/* in a, n */
-				err = decodeIN_a_n(r, &instruction, &mnemonic)
-			case 0x20:
-				/* ex sp, hl */
-				decodeEX_SP_HL(r, &instruction, &mnemonic)
-			case 0x28:
-				/* ex de, hl */
-				decodeEX_DE_HL(r, &instruction, &mnemonic)
-			case 0x30:
-				/* di */
-				mnemonic = append(mnemonic, "di")
-			case 0x38:
-				/* ei */
-				mnemonic = append(mnemonic, "ei")
-			}
-		case 0x04:
-			/* call cc, nn - conditional call */
-			err = decodeCALL_cc_nn(r, &instruction, &mnemonic)
-		case 0x05:
-			switch nextByte & 0x08 {
-			case 0x00:
-				/* push r16 */
-				decodePUSH_r16(r, &instruction, &mnemonic)
-			case 0x08:
-				switch nextByte & 0x30 {
-				case 0x00:
-					/* call nn */
-					err = decodeCALL_nn(r, &instruction, &mnemonic)
-				case 0x10:
-					/*
-					 * DD prefix
-					 */
-					err = decodePrefixDD(r, &instruction, &mnemonic)
-				case 0x20:
-					/* ED prefix */
-					err = decodePrefixED(r, &instruction, &mnemonic)
-				case 0x30:
-					/* FD prefix */
-					err = decodePrefixFD(r, &instruction, &mnemonic)
-				}
-			}
-		case 0x06:
-			/* assorted ALU instructions */
-			err = decodeALU_n(r, &instruction, &mnemonic)
-		case 0x07:
-			/* rst p */
-			decodeRST(r, &instruction, &mnemonic)
-		}
-	}
-	return instruction, mnemonic, err
+    /* Switch on bits 6-7 */
+    switch nextByte & 0xc0 {
+    case 0x00:
+        /* Switch on bits 0-2 */
+        switch nextByte & 0x07 {
+        case 0x00:
+            /* Switch on bits 3-5 */
+            switch nextByte & 0x38 {
+            case 0x00:
+                /* nop */
+                mnemonic = append(mnemonic, "nop")
+            case 0x08:
+                /* ex af,af' */
+                /* Not implemented in GB */
+                mnemonic = append(mnemonic, "ex")
+                mnemonic = append(mnemonic, "af")
+                mnemonic = append(mnemonic, "af'")
+            case 0x10:
+                /*
+                 * djnz x
+                 * Not implemented in GB
+                 */
+                err = decodeDJNZ(r, &instruction, &mnemonic)
+            case 0x18:
+                /*
+                 * jr E - jump to PC + E
+                 */
+                err = decodeJR_E(r, &instruction, &mnemonic)
+            default:
+                /* jr nz|z|nc|c, E*/
+                err = decodeJR_cond_E(r, &instruction, &mnemonic)
+            }
+        case 0x01:
+            /* switch on bit 3 */
+            switch nextByte & 0x08 {
+            case 0x00:
+                /* ld rp[p], nn */
+                err = decodeLD_r16_nn(r, &instruction, &mnemonic)
+            case 0x08:
+                /* add hl, rp[p] */
+                decodeADD_hl_r16(r, &instruction, &mnemonic)
+            }
+        case 0x02:
+            /* switch on bit 3 */
+            switch nextByte & 0x08 {
+            case 0x00:
+                /* switch on bits 4-5 */
+                switch nextByte & 0x30 {
+                    case 0x00:
+                        /* ld [bc], a */
+                        decodeLD_BC_A(r, &instruction, &mnemonic)
+                    case 0x10:
+                        /* ld [de], a */
+                        decodeLD_DE_A(r, &instruction, &mnemonic)
+                    case 0x20:
+                        /* ld [nn], hl */
+                        err = decodeLD_nn_HL(r, &instruction, &mnemonic)
+                    case 0x30:
+                        /* ld [nn], a */
+                        err = decodeLD_nn_A(r, &instruction, &mnemonic)
+                }
+            case 0x08:
+                /* switch on bits 4-5 */
+                switch nextByte & 0x30 {
+                case 0x00:
+                    /* ld a, [bc] */
+                    decodeLD_A_BC(r, &instruction, &mnemonic)
+                case 0x10:
+                    /* ld a, [de] */
+                    decodeLD_A_DE(r, &instruction, &mnemonic)
+                case 0x20:
+                    /* ld hl, [nn] */
+                    err = decodeLD_HL_nn(r, &instruction, &mnemonic)
+                case 0x30:
+                    /* ld a, [nn] */
+                    err = decodeLD_A_nn(r, &instruction, &mnemonic)
+                }
+            }
+        case 0x03:
+            /* switch on bit 3 */
+            switch nextByte & 0x08 {
+            case 0x00:
+                /* inc r16 */
+                decodeINC_r16(r, &instruction, &mnemonic)
+            case 0x08:
+                /* dec r16 */
+                decodeDEC_r16(r, &instruction, &mnemonic)
+            }
+        case 0x04:
+            /* inc r8 */
+            decodeINC_r8(r, &instruction, &mnemonic)
+        case 0x05:
+            /* dec r8 */
+            decodeDEC_r8(r, &instruction, &mnemonic)
+        case 0x06:
+            /* ld r8, n */
+            err = decodeLD_r8_n(r, &instruction, &mnemonic)
+        case 0x07:
+            /* switch on bits 3-5 */
+            switch nextByte & 0x38 {
+            case 0x00:
+                /* RLCA */
+                mnemonic = append(mnemonic, "rlca")
+            case 0x08:
+                /* RRCA */
+                mnemonic = append(mnemonic, "rrca")
+            case 0x10:
+                /* RLA */
+                mnemonic = append(mnemonic, "rla")
+            case 0x18:
+                /* RRA */
+                mnemonic = append(mnemonic, "rra")
+            case 0x20:
+                /* DAA */
+                mnemonic = append(mnemonic, "daa")
+            case 0x28:
+                /* CPL */
+                mnemonic = append(mnemonic, "cpl")
+            case 0x30:
+                /* SCF */
+                mnemonic = append(mnemonic, "scf")
+            case 0x38:
+                /* CCF */
+                mnemonic = append(mnemonic, "ccf")
+            }
+        }
+    case 0x40:
+        switch nextByte & 0x07{
+        case 0x6:
+            switch nextByte & 0x38 {
+            case 0x30:
+                /* halt */
+                mnemonic = append(mnemonic, "halt")
+            default:
+                /* ld r, r' */
+                decodeLD_r8_r8(r, &instruction, &mnemonic)
+            }
+        default:
+            /* ld r, r' */
+            decodeLD_r8_r8(r, &instruction, &mnemonic)
+        }
+    case 0x80:
+        /* assorted ALU instructions */
+        decodeALU_r8(r, &instruction, &mnemonic)
+    case 0xc0:
+        switch nextByte & 0x07 {
+            case 0x00:
+                /* ret CC - conditional return */
+                decodeRET_cc(r, &instruction, &mnemonic)
+            case 0x01:
+                switch nextByte & 0x08 {
+                case 0x00:
+                    /* pop r16 */
+                    decodePOP_r16(r, &instruction, &mnemonic)
+                case 0x08:
+                    switch nextByte & 0x30 {
+                    case 0x00:
+                        /* ret */
+                        mnemonic = append(mnemonic, "ret")
+                    case 0x10:
+                        /* exx */
+                        mnemonic = append(mnemonic, "exx")
+                    case 0x20:
+                        /* jp hl */
+                        decodeJP_HL(r, &instruction, &mnemonic)
+                    case 0x30:
+                        /* ld sp, hl */
+                        decodeLD_SP_HL(r, &instruction, &mnemonic)
+                    }
+                }
+            case 0x02:
+                /* jp cc, nn - conditional absolute jump */
+                err = decodeJP_cc_nn(r, &instruction, &mnemonic)
+            case 0x03:
+                switch nextByte & 0x38 {
+                case 0x00:
+                    /* jp nn */
+                    err = decodeJP_nn(r, &instruction, &mnemonic)
+                case 0x08:
+                    /* 0xcb prefix */
+                    err = decodePrefixCB(r, &instruction, &mnemonic)
+                case 0x10:
+                    /* out n, a */
+                    err = &Z80AsmError{errorType: Z80AsmErrorIllegalInstruction}
+                case 0x18:
+                    /* in a, n */
+                    err = decodeIN_a_n(r, &instruction, &mnemonic)
+                case 0x20:
+                    /* ex sp, hl */
+                    decodeEX_SP_HL(r, &instruction, &mnemonic)
+                case 0x28:
+                    /* ex de, hl */
+                    decodeEX_DE_HL(r, &instruction, &mnemonic)
+                case 0x30:
+                    /* di */
+                    mnemonic = append(mnemonic, "di")
+                case 0x38:
+                    /* ei */
+                    mnemonic = append(mnemonic, "ei")
+                }
+            case 0x04:
+                /* call cc, nn - conditional call */
+                err = decodeCALL_cc_nn(r, &instruction, &mnemonic)
+            case 0x05:
+                switch nextByte & 0x08 {
+                case 0x00:
+                    /* push r16 */
+                    decodePUSH_r16(r, &instruction, &mnemonic)
+                case 0x08:
+                    switch nextByte & 0x30 {
+                    case 0x00:
+                        /* call nn */
+                        err = decodeCALL_nn(r, &instruction, &mnemonic)
+                    case 0x10:
+                        /*
+                         * DD prefix
+                         */
+                        err = decodePrefixDD(r, &instruction, &mnemonic)
+                    case 0x20:
+                        /* ED prefix */
+                        err = decodePrefixED(r, &instruction, &mnemonic)
+                    case 0x30:
+                        /* FD prefix */
+                        err = decodePrefixFD(r, &instruction, &mnemonic)
+                    }
+                }
+            case 0x06:
+                /* assorted ALU instructions */
+                err = decodeALU_n(r, &instruction, &mnemonic)
+            case 0x07:
+                /* rst p */
+                decodeRST(r, &instruction, &mnemonic)
+        }
+    }
+    return instruction, mnemonic, err
 }
 
-func disassemblerLoop(r *bufio.Reader) int {
-	var addr uint32 = 0x0
-	for instruction, mnemonic, err := decodeInstruction(r); len(instruction) != 0; instruction, mnemonic, err = decodeInstruction(r) {
-		/* Generate hex encoding of instruction */
-		instructionHex := make([]uint8, hex.EncodedLen(len(instruction)))
-		hex.Encode(instructionHex, instruction)
+func disassemblerLoop(r *bufio.Reader, base uint32) int {
+    var addr uint32 = base
+    for instruction, mnemonic, err := decodeInstruction(r);
+        len(instruction) != 0;
+        instruction, mnemonic, err = decodeInstruction(r) {
+        /* Generate hex encoding of instruction */
+        instructionHex := make([]uint8, hex.EncodedLen(len(instruction)))
+        hex.Encode(instructionHex, instruction)
 
-		if err != nil {
-			fmt.Printf("%s\n", err.Error())
-			fmt.Printf("0x%016x: %-12s\n", addr, instructionHex)
-			return 1
-		}
+        if err != nil {
+            fmt.Printf("0x%016x: %-12s %-6s\n", addr, instructionHex, err.Error())
+            if err.(*Z80AsmError).errorType != Z80AsmErrorIllegalInstruction &&
+               err.(*Z80AsmError).errorType != Z80AsmErrorUnimplementedInstruction {
+                return 1
+            } else {
+                addr += uint32(len(instruction))
+                continue
+            }
+        }
 
-		/* format - addr: <instruction bytes> <instruction mnemonic> */
-		operands := ""
-		if len(mnemonic) > 1 {
-			operands = strings.Join(mnemonic[1:], ", ")
-		}
-		fmt.Printf("0x%016x: %-12s %-6s %s\n", addr, instructionHex, mnemonic[0], operands)
-		addr += uint32(len(instruction))
-	}
-	return 0
+        /* format - addr: <instruction bytes> <instruction mnemonic> */
+        operands := ""
+        if len(mnemonic) > 1 {
+            operands = strings.Join(mnemonic[1:], ", ")
+        }
+        fmt.Printf("0x%016x: %-12s %-6s %s\n", addr, instructionHex, mnemonic[0], operands)
+        addr += uint32(len(instruction))
+    }
+    return 0
 }
