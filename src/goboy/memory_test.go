@@ -3,14 +3,6 @@ package main
 import "testing"
 import "github.com/stretchr/testify/assert"
 
-/* Test reading ROM bank 0 */
-func TestGBMemReadROM(t *testing.T) {
-	mem := &GBMem{}
-	addr := uint16(0x0070)
-	mem.rom0[addr] = uint8(0xfa)
-	assert.Equal(t, mem.read(addr), uint8(0xfa))
-}
-
 /* Test reading working RAM */
 func TestGBMemReadRAM(t *testing.T) {
 	mem := &GBMem{}
