@@ -769,6 +769,7 @@ func (gb *GameBoy) DEC_r(ins [1]uint8) {
 		gb.modifyFlag(H_FLAG, CLEAR)
 	}
 	gb.modifyFlag(N_FLAG, SET)
+	gb.regs[PC] += uint16(len(ins))
 }
 
 // DEC (HL)
@@ -788,4 +789,52 @@ func (gb *GameBoy) DEC_hl(ins [1]uint8) {
 		gb.modifyFlag(H_FLAG, CLEAR)
 	}
 	gb.modifyFlag(N_FLAG, SET)
+	gb.regs[PC] += uint16(len(ins))
 }
+
+/* 16 BIT ALU OPCODES */
+
+// ADD HL ss
+func (gb *GameBoy) ADD_hl_ss(ins [1]uint8) {
+	aVal := gb.get16Reg(HL)
+	ss := Reg16ID((ins[0] >> 4) & 0x03)
+	bVal := gb.get16Reg(ss)
+	out := aVal + bVal
+	gb.set16Reg(HL, out)
+	gb.modifyFlag(N_FLAG, CLEAR)
+	if (aVal&0x0fff)+(bVal&0x0fff) > 0x0fff {
+		gb.modifyFlag(H_FLAG, SET)
+	} else {
+		gb.modifyFlag(H_FLAG, CLEAR)
+	}
+	if uint32(aVal)+uint32(bVal) > 0xffff {
+		gb.modifyFlag(C_FLAG, SET)
+	} else {
+		gb.modifyFlag(C_FLAG, CLEAR)
+	}
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// ADD SP e
+func (gb *GameBoy) ADD_sp_e(ins [2]uint8) {
+	aVal := gb.get16Reg(SP)
+	bVal := uint16(ins[1])
+	out := aVal + bVal
+	gb.set16Reg(SP, out)
+	gb.modifyFlag(N_FLAG, CLEAR)
+	gb.modifyFlag(Z_FLAG, CLEAR)
+	if (aVal&0x0fff)+(bVal&0x0fff) > 0x0fff {
+		gb.modifyFlag(H_FLAG, SET)
+	} else {
+		gb.modifyFlag(H_FLAG, CLEAR)
+	}
+	if uint32(aVal)+uint32(bVal) > 0xffff {
+		gb.modifyFlag(C_FLAG, SET)
+	} else {
+		gb.modifyFlag(C_FLAG, CLEAR)
+	}
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// TODO: Implement 16 bit INC
+// TODO: Implement 16 bit DEC
