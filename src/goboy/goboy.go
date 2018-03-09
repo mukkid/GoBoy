@@ -107,7 +107,17 @@ func (r *Register) set8Reg(id Reg8ID, value uint8) {
 	}
 }
 
+// modifyFlag sets the flag to a value which is 0 or 1
 func (r *Register) modifyFlag(flag FlagId, value uint16) {
-	r.regs[5] &= ^uint16(flag)
-	r.regs[5] |= (uint16(flag) & value)
+	r.regs[AF] &= ^uint16(flag)
+	r.regs[AF] |= (uint16(flag) & value)
+}
+
+// getFlag returns the value of the flag
+func (r *Register) getFlag(flag FlagId) uint8 {
+	if r.regs[AF] & flag > 0 {
+		return 1
+	} else {
+		return 0
+	}
 }
