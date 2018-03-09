@@ -1,14 +1,14 @@
 package main
 
 import (
-    "os"
+	"os"
 )
 
 func min(a, b int) int {
-    if a < b {
-        return a
-    }
-    return b
+	if a < b {
+		return a
+	}
+	return b
 }
 
 /*
@@ -47,20 +47,20 @@ func (r *GBROM) writeRAM(addr uint16, data uint8) {
 	return
 }
 
-func (r *GBROM) loadROM(data []uint8) error{
-    copy(r.rom[:], data)
-    return nil
+func (r *GBROM) loadROM(data []uint8) error {
+	copy(r.rom[:], data)
+	return nil
 }
 
-func (r *GBROM) loadROMFromFile(fname string) error{
-    f, err := os.Open(fname)
-    if err != nil {
-        return err
-    }
-    _, err = f.Read(r.rom[:])
-    return err
+func (r *GBROM) loadROMFromFile(fname string) error {
+	f, err := os.Open(fname)
+	if err != nil {
+		return err
+	}
+	_, err = f.Read(r.rom[:])
+	return err
 }
 
-func newGBROM() *GBROM{
-    return &GBROM{}
+func newGBROM() *GBROM {
+	return &GBROM{}
 }

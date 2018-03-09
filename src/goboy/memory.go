@@ -135,7 +135,7 @@ func (m *GBMem) write(addr uint16, value uint8) {
 }
 
 func (m *GBMem) loadROM(data []uint8) {
-    m.cartridge.loadROM(data)
+	m.cartridge.loadROM(data)
 }
 
 /* Interface for the different cartridges */
@@ -145,7 +145,7 @@ type GBCartridge interface {
 	 * VRAM - [0x8000, 0x9FFF)
 	 * RAM  - [0xa000, 0xc000)
 	 */
-    loadROM(data []uint8) error
+	loadROM(data []uint8) error
 	readROM(addr uint16) uint8
 	readRAM(addr uint16) uint8
 	writeROM(addr uint16, data uint8)

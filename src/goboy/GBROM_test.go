@@ -11,14 +11,14 @@ func TestGBROMReadROM(t *testing.T) {
 }
 
 func TestGBROMLoadROM(t *testing.T) {
-    romData := make([]uint8, 0x8000, 0x8000)
-    for i, _ := range romData {
-            romData[i] = uint8(i % 256)
-    }
-    gbRom := &GBROM{}
-    gbRom.loadROM(romData)
-    assert.Equal(t, gbRom.rom[255], uint8(255))
-    assert.Equal(t, gbRom.rom[0x7de7], uint8(0xe7))
+	romData := make([]uint8, 0x8000, 0x8000)
+	for i, _ := range romData {
+		romData[i] = uint8(i % 256)
+	}
+	gbRom := &GBROM{}
+	gbRom.loadROM(romData)
+	assert.Equal(t, gbRom.rom[255], uint8(255))
+	assert.Equal(t, gbRom.rom[0x7de7], uint8(0xe7))
 }
 
 /* Will add tests for readRAM and writeRAM once we've implemented memory faults */
