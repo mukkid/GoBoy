@@ -115,7 +115,7 @@ func (r *Register) modifyFlag(flag FlagId, value uint16) {
 
 // getFlag returns the value of the flag
 func (r *Register) getFlag(flag FlagId) uint8 {
-	if r.regs[AF] & flag > 0 {
+	if r.regs[AF] & uint16(flag) > 0 {
 		return 1
 	} else {
 		return 0
