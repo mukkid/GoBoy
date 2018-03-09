@@ -840,7 +840,7 @@ func (gb *GameBoy) ADD_sp_e(ins [2]uint8) {
 // TODO: Implement 16 bit DEC
 
 func (gb *GameBoy) JP_nn(ins [3]uint8) {
-    address := binary.LittleEndian.Uint16(ins[1:])
-    gb.set16Reg(PC, address)
-    gb.regs[PC] += uint16(len(ins))
+	address := binary.LittleEndian.Uint16(ins[1:])
+	gb.set16Reg(PC, address)
+	gb.regs[PC] += uint16(len(ins))
 }
