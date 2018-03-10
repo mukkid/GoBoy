@@ -842,5 +842,44 @@ func (gb *GameBoy) ADD_sp_e(ins [2]uint8) {
 func (gb *GameBoy) JP_nn(ins [3]uint8) {
 	address := binary.LittleEndian.Uint16(ins[1:])
 	gb.set16Reg(PC, address)
+}
+
+func (gb *GameBoy) JP_cc_nn(ins [3]uint8) {
+	Z := gb.getFlag(Z_FLAG)
+	C := gb.getFlag(C_FLAG)
+	cc := ins[0] >> 3 & 0x03
+	if cc == 0x00 && Z == 0x00 ||
+		cc == 0x01 && Z == 0x01 ||
+		cc == 0x02 && C == 0x00 ||
+		cc == 0x03 && C == 0x01 {
+		address := binary.LittleEndian.Uint16(ins[1:])
+		gb.set16Reg(PC, address)
+	} else {
+		gb.regs[PC] += uint16(len(ins))
+	}
+}
+
+func (gb *GameBoy) JR_e(ins [2]uint8) {
+	jump := int8(ins[1])
 	gb.regs[PC] += uint16(len(ins))
+	gb.regs[PC] = uint16(int16(gb.regs[PC]) + int16(jump))
+}
+
+func (gb *GameBoy) JR_cc_e(ins [2]uint8) {
+	Z := gb.getFlag(Z_FLAG)
+	C := gb.getFlag(C_FLAG)
+	cc := ins[0] >> 3 & 0x03
+	if cc == 0x00 && Z == 0x00 ||
+		cc == 0x01 && Z == 0x01 ||
+		cc == 0x02 && C == 0x00 ||
+		cc == 0x03 && C == 0x01 {
+		jump := int8(ins[1])
+		gb.regs[PC] = uint16(int16(gb.regs[PC]) + int16(jump))
+	}
+	gb.regs[PC] += uint16(len(ins))
+}
+
+func (gb *GameBoy) JP_hl(ins [1]uint8) {
+	address := gb.get16Reg(HL)
+	gb.set16Reg(PC, address)
 }

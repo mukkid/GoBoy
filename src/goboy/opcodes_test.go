@@ -744,3 +744,99 @@ func TestDEC_hl(t *testing.T) {
 	assert.Equal(t, gb.mainMemory.read(0xff85), uint8(0xff))
 	assert.Equal(t, gb.get8Reg(F), uint8(0x60)) // M_FLAG and H_FLAG is set
 }
+
+func TestADD_hl_ss(t *testing.T) {
+	gb := initGameboy()
+	gb.set16Reg(HL, 0x0fff)
+	gb.set16Reg(BC, 0x0001)
+	gb.ADD_hl_ss([1]uint8{0x09})
+	assert.Equal(t, gb.get16Reg(HL), uint16(0x1000))
+	assert.Equal(t, gb.get8Reg(F), uint8(0x20))
+
+	gb.set16Reg(HL, 0xf000)
+	gb.set16Reg(BC, 0x1001)
+	gb.ADD_hl_ss([1]uint8{0x09})
+	assert.Equal(t, gb.get16Reg(HL), uint16(0x0001))
+	assert.Equal(t, gb.get8Reg(F), uint8(0x10))
+}
+
+func TestADD_sp_e(t *testing.T) {
+	gb := initGameboy()
+	gb.set16Reg(SP, 0x0fff)
+	gb.ADD_sp_e([2]uint8{0xe8, 0x01})
+	assert.Equal(t, gb.get16Reg(SP), uint16(0x1000))
+	assert.Equal(t, gb.get8Reg(F), uint8(0x20))
+
+	gb.set16Reg(SP, 0xffff)
+	gb.ADD_sp_e([2]uint8{0xe8, 0x01})
+	assert.Equal(t, gb.get16Reg(SP), uint16(0x0000))
+	assert.Equal(t, gb.get8Reg(F), uint8(0x30))
+}
+
+// TODO: Implement 16 bit INC test
+// TODO: Implement 16 bit DEC test
+
+func TestJP_nn(t *testing.T) {
+	gb := initGameboy()
+	gb.set16Reg(PC, 0x1234)
+	gb.JP_nn([3]uint8{0xc3, 0x78, 0x56})
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x5678))
+}
+
+func TestJP_cc_nn(t *testing.T) {
+	gb := initGameboy()
+	gb.JP_cc_nn([3]uint8{0xc2, 0x34, 0x12})
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x1234))
+
+	gb.set16Reg(PC, 0x0000)
+	gb.modifyFlag(Z_FLAG, SET)
+	gb.JP_cc_nn([3]uint8{0xc2, 0x34, 0x12})
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x0003))
+
+	gb.set16Reg(PC, 0x0000)
+	gb.modifyFlag(C_FLAG, SET)
+	gb.JP_cc_nn([3]uint8{0xda, 0x34, 0x12})
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x1234))
+
+	gb.set16Reg(PC, 0x0000)
+	gb.modifyFlag(C_FLAG, CLEAR)
+	gb.JP_cc_nn([3]uint8{0xda, 0x34, 0x12})
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x0003))
+}
+
+func TestJR_e(t *testing.T) {
+	gb := initGameboy()
+	gb.JR_e([2]uint8{0x18, 0x0a})
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x000c))
+
+	gb.JR_e([2]uint8{0x18, 0xf9})
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x0007))
+}
+
+func TestJR_cc_e(t *testing.T) {
+	gb := initGameboy()
+	gb.JR_cc_e([2]uint8{0x20, 0x0a})
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x000c))
+
+	gb.set16Reg(PC, 0x0000)
+	gb.modifyFlag(Z_FLAG, SET)
+	gb.JR_cc_e([2]uint8{0x20, 0xf9})
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x0002))
+
+	gb.set16Reg(PC, 0x000c)
+	gb.modifyFlag(C_FLAG, SET)
+	gb.JR_cc_e([2]uint8{0x38, 0xf9})
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x0007))
+
+	gb.set16Reg(PC, 0x000c)
+	gb.modifyFlag(C_FLAG, CLEAR)
+	gb.JR_cc_e([2]uint8{0x38, 0x34})
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x000e))
+}
+
+func TestJP_hl(t *testing.T) {
+	gb := initGameboy()
+	gb.set16Reg(HL, 0x1234)
+	gb.JP_hl([1]uint8{0xe9})
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x1234))
+}
