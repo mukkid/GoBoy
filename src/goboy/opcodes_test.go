@@ -772,3 +772,13 @@ func TestADD_sp_e(t *testing.T) {
 	assert.Equal(t, gb.get16Reg(SP), uint16(0x0000))
 	assert.Equal(t, gb.get8Reg(F), uint8(0x30))
 }
+
+// TODO: Implement 16 bit INC test
+// TODO: Implement 16 bit DEC test
+
+func TestJP_nn(t *testing.T) {
+	gb := initGameboy()
+	gb.set16Reg(PC, 0x1234)
+	gb.JP_nn([3]uint8{0xc3, 0x78, 0x56})
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x5678))
+}
