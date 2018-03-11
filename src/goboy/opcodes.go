@@ -839,8 +839,35 @@ func (gb *GameBoy) ADD_sp_e(ins [2]uint8) {
 	gb.regs[PC] += uint16(len(ins))
 }
 
-// TODO: Implement 16 bit INC
-// TODO: Implement 16 bit DEC
+// 16 bit INC
+
+/*Retrieve value of ss
+    Shift instruction array to the right by 4
+    Clear non-ss bits
+
+Get value of ss register
+
+Add 1 to register value
+
+Store incremented value back into register ss*/
+
+func (gb *GameBoy) INC_ss(ins [1]uint8) {
+	ss := Reg16ID((ins[0] >> 4) & 0x03)
+	ssVal := gb.get16Reg(ss)
+	out := ssVal + 0x01
+	gb.set16Reg(ss, out)
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// 16 bit DEC
+
+func (gb *GameBoy) DEC_ss(ins [1]uint8) {
+	ss := Reg16ID((ins[0] >> 4) & 0x03)
+	ssVal := gb.get16Reg(ss)
+	out := ssVal - 0x01
+	gb.set16Reg(ss, out)
+	gb.regs[PC] += uint16(len(ins))
+}
 
 func (gb *GameBoy) JP_nn(ins [3]uint8) {
 	address := binary.LittleEndian.Uint16(ins[1:])
