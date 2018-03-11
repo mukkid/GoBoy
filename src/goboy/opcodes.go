@@ -1,6 +1,9 @@
 package main
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+	"math/bits"
+)
 
 // Load r1 <- r2
 func (gb *GameBoy) LD_r_r(ins [1]uint8) {
@@ -882,4 +885,393 @@ func (gb *GameBoy) JR_cc_e(ins [2]uint8) {
 func (gb *GameBoy) JP_hl(ins [1]uint8) {
 	address := gb.get16Reg(HL)
 	gb.set16Reg(PC, address)
+}
+
+// checkAndSetZeroFlag sets Z_FLAG if out is zero otherwise it clears it.
+func (gb *GameBoy) checkAndSetZeroFlag(out uint8) {
+	if out == 0 {
+		gb.modifyFlag(Z_FLAG, SET)
+	} else {
+		gb.modifyFlag(Z_FLAG, CLEAR)
+	}
+}
+
+// _rotateWithC handles rotation with/without C and in multiple directions
+func _rotateWithC(input uint8, c_input uint8, left bool, withC bool) (output uint8, c_output uint16) {
+
+	// handle c_output
+	c_output = CLEAR
+	if left {
+		// left
+		if input&0x80 == 0x80 {
+			c_output = SET
+		}
+	} else {
+		// right
+		if input&0x1 == 0x1 {
+			c_output = SET
+		}
+	}
+
+	// do rotation
+	direction := 1
+	if !left {
+		direction = -1
+	}
+	output = bits.RotateLeft8(input, direction)
+
+	// handle rotating in C
+	if withC {
+		if left {
+			// left
+			if c_input&0x1 == 0x1 {
+				output = output | 0x1
+			} else {
+				output = output & 0xfe
+			}
+		} else {
+			// right
+			if c_input&0x1 == 0x1 {
+				output = output | 0x80
+			} else {
+				output = output & 0x7f
+			}
+		}
+	}
+
+	return
+}
+
+// RLCA rotates the contents of register A to the left. The contents of bit 7
+// are placed in both C and bit 0 of the result.
+func (gb *GameBoy) RLCA(ins [1]uint8) {
+	val := gb.get8Reg(A)
+	out, c_out := _rotateWithC(val, 0, true, false)
+	gb.set8Reg(A, out)
+	gb.modifyFlag(C_FLAG, uint16(c_out))
+	gb.checkAndSetZeroFlag(out)
+	gb.modifyFlag(H_FLAG, CLEAR)
+	gb.modifyFlag(N_FLAG, CLEAR)
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// RLA rotates the contents of register A to the left. The contents of bit 7
+// are placed in C, and C is rotated into bit 0.
+func (gb *GameBoy) RLA(ins [1]uint8) {
+	val := gb.get8Reg(A)
+	out, c_out := _rotateWithC(val, gb.getFlag(C_FLAG), true, true)
+	gb.set8Reg(A, out)
+	gb.modifyFlag(C_FLAG, uint16(c_out))
+	gb.checkAndSetZeroFlag(out)
+	gb.modifyFlag(H_FLAG, CLEAR)
+	gb.modifyFlag(N_FLAG, CLEAR)
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// RRCA rotates the contents of register A to the right. The contents of bit 0
+// are placed in both C and bit 7 of the result.
+func (gb *GameBoy) RRCA(ins [1]uint8) {
+	val := gb.get8Reg(A)
+	out, c_out := _rotateWithC(val, 0, false, false)
+	gb.set8Reg(A, out)
+	gb.modifyFlag(C_FLAG, uint16(c_out))
+	gb.checkAndSetZeroFlag(out)
+	gb.modifyFlag(H_FLAG, CLEAR)
+	gb.modifyFlag(N_FLAG, CLEAR)
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// RRA rotates the contents of register A to the right. The contents of bit 0
+// are placed in C, and C is rotated into bit 7.
+func (gb *GameBoy) RRA(ins [1]uint8) {
+	val := gb.get8Reg(A)
+	out, c_out := _rotateWithC(val, gb.getFlag(C_FLAG), false, true)
+	gb.set8Reg(A, out)
+	gb.modifyFlag(C_FLAG, uint16(c_out))
+	gb.checkAndSetZeroFlag(out)
+	gb.modifyFlag(H_FLAG, CLEAR)
+	gb.modifyFlag(N_FLAG, CLEAR)
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// RLC_r rotates the contents of register r to the left.
+func (gb *GameBoy) RLC_r(ins [1]uint8) {
+	r := Reg8ID((ins[0] >> 3) & 0x07)
+	val := gb.get8Reg(r)
+	out, c_out := _rotateWithC(val, 0, true, false)
+	gb.set8Reg(r, out)
+	gb.modifyFlag(C_FLAG, uint16(c_out))
+	gb.checkAndSetZeroFlag(out)
+	gb.modifyFlag(H_FLAG, CLEAR)
+	gb.modifyFlag(N_FLAG, CLEAR)
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// RLC_hl rotates the data stored at address (HL) to the left.
+func (gb *GameBoy) RLC_hl(ins [1]uint8) {
+	address := gb.get16Reg(HL)
+	val := gb.mainMemory.read(address)
+	out, c_out := _rotateWithC(val, 0, true, false)
+	gb.mainMemory.write(address, out)
+	gb.modifyFlag(C_FLAG, uint16(c_out))
+	gb.checkAndSetZeroFlag(out)
+	gb.modifyFlag(H_FLAG, CLEAR)
+	gb.modifyFlag(N_FLAG, CLEAR)
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// RL_r rotates the contents of register r to the left.
+func (gb *GameBoy) RL_r(ins [1]uint8) {
+	r := Reg8ID((ins[0] >> 3) & 0x07)
+	val := gb.get8Reg(r)
+	out, c_out := _rotateWithC(val, gb.getFlag(C_FLAG), true, true)
+	gb.set8Reg(r, out)
+	gb.modifyFlag(C_FLAG, uint16(c_out))
+	gb.checkAndSetZeroFlag(out)
+	gb.modifyFlag(H_FLAG, CLEAR)
+	gb.modifyFlag(N_FLAG, CLEAR)
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// RL_hl rotates the data stored at address (HL) to the left.
+func (gb *GameBoy) RL_hl(ins [1]uint8) {
+	address := gb.get16Reg(HL)
+	val := gb.mainMemory.read(address)
+	out, c_out := _rotateWithC(val, gb.getFlag(C_FLAG), true, true)
+	gb.mainMemory.write(address, out)
+	gb.modifyFlag(C_FLAG, uint16(c_out))
+	gb.checkAndSetZeroFlag(out)
+	gb.modifyFlag(H_FLAG, CLEAR)
+	gb.modifyFlag(N_FLAG, CLEAR)
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// RRC_r rotates the contents of register r to the right.
+func (gb *GameBoy) RRC_r(ins [1]uint8) {
+	r := Reg8ID((ins[0] >> 3) & 0x07)
+	val := gb.get8Reg(r)
+	out, c_out := _rotateWithC(val, 0, false, false)
+	gb.set8Reg(r, out)
+	gb.modifyFlag(C_FLAG, uint16(c_out))
+	gb.checkAndSetZeroFlag(out)
+	gb.modifyFlag(H_FLAG, CLEAR)
+	gb.modifyFlag(N_FLAG, CLEAR)
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// RRC_hl rotates the data stored at address (HL) to the right.
+func (gb *GameBoy) RRC_hl(ins [1]uint8) {
+	address := gb.get16Reg(HL)
+	val := gb.mainMemory.read(address)
+	out, c_out := _rotateWithC(val, 0, false, false)
+	gb.mainMemory.write(address, out)
+	gb.modifyFlag(C_FLAG, uint16(c_out))
+	gb.checkAndSetZeroFlag(out)
+	gb.modifyFlag(H_FLAG, CLEAR)
+	gb.modifyFlag(N_FLAG, CLEAR)
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// RR_r rotates the contents of register r to the right.
+func (gb *GameBoy) RR_r(ins [1]uint8) {
+	r := Reg8ID((ins[0] >> 3) & 0x07)
+	val := gb.get8Reg(r)
+	out, c_out := _rotateWithC(val, gb.getFlag(C_FLAG), false, true)
+	gb.set8Reg(r, out)
+	gb.modifyFlag(C_FLAG, uint16(c_out))
+	gb.checkAndSetZeroFlag(out)
+	gb.modifyFlag(H_FLAG, CLEAR)
+	gb.modifyFlag(N_FLAG, CLEAR)
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// RR_hl rotates the data stored at address (HL) to the right.
+func (gb *GameBoy) RR_hl(ins [1]uint8) {
+	address := gb.get16Reg(HL)
+	val := gb.mainMemory.read(address)
+	out, c_out := _rotateWithC(val, gb.getFlag(C_FLAG), false, true)
+	gb.mainMemory.write(address, out)
+	gb.modifyFlag(C_FLAG, uint16(c_out))
+	gb.checkAndSetZeroFlag(out)
+	gb.modifyFlag(H_FLAG, CLEAR)
+	gb.modifyFlag(N_FLAG, CLEAR)
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// SLA_r shifts the contents of register r to the left
+func (gb *GameBoy) SLA_r(ins [1]uint8) {
+	r := Reg8ID((ins[0] >> 3) & 0x07)
+	val := gb.get8Reg(r)
+
+	// rotate and set bit 0 to 0 for shift
+	out := bits.RotateLeft8(val, 1)
+	out = out & 0xfe
+	gb.set8Reg(r, out)
+
+	// shift 0x80 into C
+	if val&0x80 == 0x80 {
+		gb.modifyFlag(C_FLAG, SET)
+	} else {
+		gb.modifyFlag(C_FLAG, CLEAR)
+	}
+
+	gb.checkAndSetZeroFlag(out)
+	gb.modifyFlag(H_FLAG, CLEAR)
+	gb.modifyFlag(N_FLAG, CLEAR)
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// SLA_hl shifts the data stored at address (HL) to the left
+func (gb *GameBoy) SLA_hl(ins [1]uint8) {
+	address := gb.get16Reg(HL)
+	val := gb.mainMemory.read(address)
+
+	// rotate and set bit 0 to 0 for shift
+	out := bits.RotateLeft8(val, 1)
+	out = out & 0xfe
+	gb.mainMemory.write(address, out)
+
+	// shift 0x80 into C
+	if val&0x80 == 0x80 {
+		gb.modifyFlag(C_FLAG, SET)
+	} else {
+		gb.modifyFlag(C_FLAG, CLEAR)
+	}
+
+	gb.checkAndSetZeroFlag(out)
+	gb.modifyFlag(H_FLAG, CLEAR)
+	gb.modifyFlag(N_FLAG, CLEAR)
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// SRA_r shifts the contents of register r to the right
+func (gb *GameBoy) SRA_r(ins [1]uint8) {
+	r := Reg8ID((ins[0] >> 3) & 0x07)
+	val := gb.get8Reg(r)
+
+	// rotate and set bit 7 to its original value
+	out := bits.RotateLeft8(val, -1)
+	if val&0x80 == 0x80 {
+		out = out | 0x80
+	} else {
+		out = out & 0x7f
+	}
+	gb.set8Reg(r, out)
+
+	// shift 0x1 into C
+	if val&0x1 == 0x1 {
+		gb.modifyFlag(C_FLAG, SET)
+	} else {
+		gb.modifyFlag(C_FLAG, CLEAR)
+	}
+
+	gb.checkAndSetZeroFlag(out)
+	gb.modifyFlag(H_FLAG, CLEAR)
+	gb.modifyFlag(N_FLAG, CLEAR)
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// SRA_hl shifts the data stored at address (HL) to the right
+func (gb *GameBoy) SRA_hl(ins [1]uint8) {
+	address := gb.get16Reg(HL)
+	val := gb.mainMemory.read(address)
+
+	// rotate and set bit 7 to its original value
+	out := bits.RotateLeft8(val, -1)
+	if val&0x80 == 0x80 {
+		out = out | 0x80
+	} else {
+		out = out & 0x7f
+	}
+	gb.mainMemory.write(address, out)
+
+	// shift 0x1 into C
+	if val&0x1 == 0x1 {
+		gb.modifyFlag(C_FLAG, SET)
+	} else {
+		gb.modifyFlag(C_FLAG, CLEAR)
+	}
+
+	gb.checkAndSetZeroFlag(out)
+	gb.modifyFlag(H_FLAG, CLEAR)
+	gb.modifyFlag(N_FLAG, CLEAR)
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// SRL r
+func (gb *GameBoy) SRL_r(ins [1]uint8) {
+	r := Reg8ID((ins[0] >> 3) & 0x07)
+	val := gb.get8Reg(r)
+
+	// rotate and set bit 7 to 0 for shift
+	out := bits.RotateLeft8(val, -1)
+	out = out & 0x7f
+	gb.set8Reg(r, out)
+
+	// shift 0x1 into C
+	if val&0x1 == 0x1 {
+		gb.modifyFlag(C_FLAG, SET)
+	} else {
+		gb.modifyFlag(C_FLAG, CLEAR)
+	}
+
+	gb.checkAndSetZeroFlag(out)
+	gb.modifyFlag(H_FLAG, CLEAR)
+	gb.modifyFlag(N_FLAG, CLEAR)
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// SRL_hl shifts the data stored at address (HL) to the right
+func (gb *GameBoy) SRL_hl(ins [1]uint8) {
+	address := gb.get16Reg(HL)
+	val := gb.mainMemory.read(address)
+
+	// rotate and set bit 7 to 0 for shift
+	out := bits.RotateLeft8(val, -1)
+	out = out & 0x7f
+	gb.mainMemory.write(address, out)
+
+	// shift 0x1 into C
+	if val&0x1 == 0x1 {
+		gb.modifyFlag(C_FLAG, SET)
+	} else {
+		gb.modifyFlag(C_FLAG, CLEAR)
+	}
+
+	gb.checkAndSetZeroFlag(out)
+	gb.modifyFlag(H_FLAG, CLEAR)
+	gb.modifyFlag(N_FLAG, CLEAR)
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// SWAP_r
+func (gb *GameBoy) SWAP_r(ins [1]uint8) {
+	r := Reg8ID((ins[0] >> 3) & 0x07)
+	val := gb.get8Reg(r)
+	// nibble swap
+	ln := val & 0xf
+	un := (val & 0xf0) >> 4
+	out := (ln << 4) & un
+	gb.set8Reg(r, out)
+	gb.modifyFlag(C_FLAG, CLEAR)
+	gb.checkAndSetZeroFlag(out)
+	gb.modifyFlag(H_FLAG, CLEAR)
+	gb.modifyFlag(N_FLAG, CLEAR)
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// SWAP_hl
+func (gb *GameBoy) SWAP_hl(ins [1]uint8) {
+	address := gb.get16Reg(HL)
+	val := gb.mainMemory.read(address)
+	// nibble swap
+	ln := val & 0xf
+	un := (val & 0xf0) >> 4
+	out := (ln << 4) & un
+	gb.mainMemory.write(address, out)
+	gb.modifyFlag(C_FLAG, CLEAR)
+	gb.checkAndSetZeroFlag(out)
+	gb.modifyFlag(H_FLAG, CLEAR)
+	gb.modifyFlag(N_FLAG, CLEAR)
+	gb.regs[PC] += uint16(len(ins))
 }

@@ -840,3 +840,60 @@ func TestJP_hl(t *testing.T) {
 	gb.JP_hl([1]uint8{0xe9})
 	assert.Equal(t, gb.get16Reg(PC), uint16(0x1234))
 }
+
+func TestRLCA(t *testing.T) {
+	gb := initGameboy()
+	gb.set8Reg(A, 0x85)
+	gb.modifyFlag(C_FLAG, CLEAR)
+	gb.RLCA([1]uint8{0x00}) // RLCA
+	// result should be 0x0b (which contradicts the GB programming manual)
+	// discussion: https://hax.iimarckus.org/topic/1617/
+	assert.Equal(t, uint8(0x0b), gb.get8Reg(A))
+	assert.Equal(t, uint8(0x10), gb.get8Reg(F)) // C FLAG set, Z,H,N FLAG cleared
+}
+
+func TestRLA(t *testing.T) {
+	gb := initGameboy()
+	gb.set8Reg(A, 0x95)
+	gb.modifyFlag(C_FLAG, SET)
+	gb.RLA([1]uint8{0x00}) // RLA
+	assert.Equal(t, uint8(0x2b), gb.get8Reg(A))
+	assert.Equal(t, uint8(0x10), gb.get8Reg(F)) // C FLAG set, Z,H,N FLAG cleared
+}
+
+func TestRRCA(t *testing.T) {
+	gb := initGameboy()
+	gb.set8Reg(A, 0x3b)
+	gb.modifyFlag(C_FLAG, CLEAR)
+	gb.RRCA([1]uint8{0x00}) // RRCA
+	assert.Equal(t, uint8(0x9d), gb.get8Reg(A))
+	assert.Equal(t, uint8(0x10), gb.get8Reg(F)) // C FLAG set, Z,H,N FLAG cleared
+}
+
+func TestRRA(t *testing.T) {
+	gb := initGameboy()
+	gb.set8Reg(A, 0x81)
+	gb.modifyFlag(C_FLAG, CLEAR)
+	gb.RRA([1]uint8{0x00}) // RRA
+	assert.Equal(t, uint8(0x40), gb.get8Reg(A))
+	assert.Equal(t, uint8(0x10), gb.get8Reg(F)) // C FLAG set, Z,H,N FLAG cleared
+}
+
+func TestRLC_r(t *testing.T) {
+	gb := initGameboy()
+	gb.set8Reg(B, 0x85)
+	gb.modifyFlag(C_FLAG, CLEAR)
+	gb.RLC_r([1]uint8{0x05}) // RLC_r
+	assert.Equal(t, uint8(0x0b), gb.get8Reg(B))
+	assert.Equal(t, uint8(0x10), gb.get8Reg(F)) // C FLAG set, Z,H,N FLAG cleared
+}
+
+func TestRLC_hl(t *testing.T) {
+	gb := initGameboy()
+	gb.set16Reg(HL, 0xff85)
+	gb.mainMemory.write(0xff85, 0x00)
+	gb.modifyFlag(C_FLAG, CLEAR)
+	gb.RLC_hl([1]uint8{0xbe}) // RLC_hl
+	assert.Equal(t, uint8(0x00), gb.mainMemory.read(0xff85))
+	assert.Equal(t, uint8(0x80), gb.get8Reg(F)) // Z FLAG set, C,H,N FLAG cleared
+}
