@@ -855,13 +855,6 @@ func TestBIT_b_hl(t *testing.T) {
 	assert.Equal(t, gb.getFlag(Z_FLAG), uint8(0x00))
 }
 
-func TestJP_nn(t *testing.T) {
-	gb := initGameboy()
-	gb.set16Reg(PC, 0x1234)
-	gb.JP_nn([3]uint8{0xc3, 0x78, 0x56})
-	assert.Equal(t, gb.get16Reg(PC), uint16(0x5678))
-}
-
 func TestSET_b_r(t *testing.T) {
 	gb := initGameboy()
 	gb.SET_b_r([2]uint8{0xcb, 0xc0})
@@ -888,6 +881,13 @@ func TestRES_b_hl(t *testing.T) {
 	gb.mainMemory.write(0xff85, 0xff)
 	gb.RES_b_hl([2]uint8{0xcb, 0x86})
 	assert.Equal(t, gb.mainMemory.read(0xff85), uint8(0xfe))
+}
+
+func TestJP_nn(t *testing.T) {
+	gb := initGameboy()
+	gb.set16Reg(PC, 0x1234)
+	gb.JP_nn([3]uint8{0xc3, 0x78, 0x56})
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x5678))
 }
 
 func TestJP_cc_nn(t *testing.T) {
