@@ -774,7 +774,21 @@ func TestADD_sp_e(t *testing.T) {
 }
 
 // TODO: Implement 16 bit INC test
+
+func TestINC_ss(t *testing.T) {
+	gb := initGameboy()
+	gb.INC_ss([1]uint8{0x13})
+	assert.Equal(t, gb.get16Reg(DE), uint16(0x0001))
+}
+
 // TODO: Implement 16 bit DEC test
+
+func TestDEC_ss(t *testing.T) {
+	gb := initGameboy()
+	gb.set16Reg(DE, 0x01)
+	gb.DEC_ss([1]uint8{0x1b})
+	assert.Equal(t, gb.get16Reg(DE), uint16(0x0000))
+}
 
 func TestJP_nn(t *testing.T) {
 	gb := initGameboy()
