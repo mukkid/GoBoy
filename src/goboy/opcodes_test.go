@@ -897,3 +897,13 @@ func TestRLC_hl(t *testing.T) {
 	assert.Equal(t, uint8(0x00), gb.mainMemory.read(0xff85))
 	assert.Equal(t, uint8(0x80), gb.get8Reg(F)) // Z FLAG set, C,H,N FLAG cleared
 }
+// TODO: Write CALL and CALL_cc tests
+
+func TestRET(t *testing.T) {
+	gb := initGameboy()
+	gb.set16Reg(SP, 0xff85)
+	gb.mainMemory.write(0xff85, 0x34)
+	gb.mainMemory.write(0xff86, 0x12)
+	gb.RET([1]uint8{0x39})
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x1234))
+}
