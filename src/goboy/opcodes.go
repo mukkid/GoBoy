@@ -1463,7 +1463,8 @@ func (gb *GameBoy) DAA(ins [1]uint8) {
 		if gb.getFlag(H_FLAG) == 1 || lsn > 0x09 {
 			correction += 0x06
 		}
-		if gb.getFlag(C_FLAG) == 1 || msn > 0x09 {
+		if gb.getFlag(C_FLAG) == 1 || msn > 0x09 ||
+			(msn == 0x09 && lsn > 0x09) {
 			correction += 0x60
 			gb.modifyFlag(C_FLAG, SET)
 		}
@@ -1482,6 +1483,7 @@ func (gb *GameBoy) DAA(ins [1]uint8) {
 	} else {
 		gb.modifyFlag(Z_FLAG, CLEAR)
 	}
+	gb.modifyFlag(H_FLAG, CLEAR)
 	gb.set8Reg(A, out)
 	gb.regs[PC] += uint16(len(ins))
 }
