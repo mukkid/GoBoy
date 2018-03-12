@@ -13,7 +13,8 @@ all: | $(BIN)
 	go get "github.com/hajimehoshi/ebiten"
 	go build -o $(BIN)/goboy ./src/goboy
 	go get "github.com/pborman/getopt/v2"
-	go build -o $(BIN)/gobjdump ./src/gobjdump
+	go install ./src/gobjdump
+	go build -o $(BIN)/gobjdump ./src/gobjdump/main
 
 .PHONY: test
 test: all
