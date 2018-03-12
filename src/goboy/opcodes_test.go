@@ -7,8 +7,9 @@ import (
 
 func initGameboy() *GameBoy {
 	return &GameBoy{
-		Register:   &Register{},
-		mainMemory: &GBMem{},
+		Register:         &Register{},
+		mainMemory:       &GBMem{},
+		interruptEnabled: true,
 	}
 }
 
@@ -1019,6 +1020,17 @@ func TestRET(t *testing.T) {
 	assert.Equal(t, gb.get16Reg(PC), uint16(0x1234))
 }
 
+func TestRETI(t *testing.T) {
+	gb := initGameboy()
+	gb.interruptEnabled = false
+	gb.set16Reg(SP, 0xff85)
+	gb.mainMemory.write(0xff85, 0x34)
+	gb.mainMemory.write(0xff86, 0x12)
+	gb.RETI([1]uint8{0xd9})
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x1234))
+	assert.Equal(t, gb.interruptEnabled, true)
+}
+
 func TestRET_cc(t *testing.T) {
 	gb := initGameboy()
 	gb.set16Reg(PC, 0x0000)
@@ -1051,7 +1063,6 @@ func TestRET_cc(t *testing.T) {
 	gb.mainMemory.write(0xff86, 0x12)
 	gb.RET_cc([1]uint8{0xd8})
 	assert.Equal(t, gb.get16Reg(PC), uint16(0x1234))
-
 }
 
 func TestRST(t *testing.T) {

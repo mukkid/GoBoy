@@ -1413,6 +1413,16 @@ func (gb *GameBoy) RET(ins [1]uint8) {
 	gb.set16Reg(PC, binary.LittleEndian.Uint16([]uint8{address_lsb, address_msb}))
 }
 
+// RETI
+func (gb *GameBoy) RETI(ins [1]uint8) {
+	gb.interruptEnabled = true
+	address_lsb := gb.mainMemory.read(gb.get16Reg(SP))
+	gb.regs[SP]++
+	address_msb := gb.mainMemory.read(gb.get16Reg(SP))
+	gb.regs[SP]++
+	gb.set16Reg(PC, binary.LittleEndian.Uint16([]uint8{address_lsb, address_msb}))
+}
+
 // RET cc
 func (gb *GameBoy) RET_cc(ins [1]uint8) {
 	Z := gb.getFlag(Z_FLAG)
