@@ -1412,3 +1412,33 @@ func (gb *GameBoy) RET(ins [1]uint8) {
 	gb.regs[SP]++
 	gb.set16Reg(PC, binary.LittleEndian.Uint16([]uint8{address_lsb, address_msb}))
 }
+
+// RET cc
+func (gb *GameBoy) RET_cc(ins [1]uint8) {
+	Z := gb.getFlag(Z_FLAG)
+	C := gb.getFlag(C_FLAG)
+	cc := ins[0] >> 3 & 0x03
+	if cc == 0x00 && Z == 0x00 ||
+		cc == 0x01 && Z == 0x01 ||
+		cc == 0x02 && C == 0x00 ||
+		cc == 0x03 && C == 0x01 {
+		address_lsb := gb.mainMemory.read(gb.get16Reg(SP))
+		gb.regs[SP]++
+		address_msb := gb.mainMemory.read(gb.get16Reg(SP))
+		gb.regs[SP]++
+		gb.set16Reg(PC, binary.LittleEndian.Uint16([]uint8{address_lsb, address_msb}))
+	} else {
+		gb.regs[PC] += uint16(len(ins))
+	}
+}
+
+// RST
+func (gb *GameBoy) RST(ins [1]uint8) {
+	t := uint16((ins[0] >> 3) & 0x07)
+	ret_pc := gb.regs[PC] + uint16(len(ins))
+	gb.regs[SP]--
+	gb.mainMemory.write(gb.regs[SP], uint8(ret_pc>>8))
+	gb.regs[SP]--
+	gb.mainMemory.write(gb.regs[SP], uint8(ret_pc&0x00ff))
+	gb.set16Reg(PC, 0x0008*t)
+}

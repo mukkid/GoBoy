@@ -1018,3 +1018,49 @@ func TestRET(t *testing.T) {
 	gb.RET([1]uint8{0x39})
 	assert.Equal(t, gb.get16Reg(PC), uint16(0x1234))
 }
+
+func TestRET_cc(t *testing.T) {
+	gb := initGameboy()
+	gb.set16Reg(PC, 0x0000)
+	gb.set16Reg(SP, 0xff85)
+	gb.mainMemory.write(0xff85, 0x34)
+	gb.mainMemory.write(0xff86, 0x12)
+	gb.RET_cc([1]uint8{0xc0})
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x1234))
+
+	gb.modifyFlag(Z_FLAG, SET)
+	gb.set16Reg(PC, 0x0000)
+	gb.set16Reg(SP, 0xff85)
+	gb.mainMemory.write(0xff85, 0x34)
+	gb.mainMemory.write(0xff86, 0x12)
+	gb.RET_cc([1]uint8{0xc0})
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x0001))
+
+	gb.modifyFlag(C_FLAG, SET)
+	gb.set16Reg(PC, 0x0000)
+	gb.set16Reg(SP, 0xff85)
+	gb.mainMemory.write(0xff85, 0x34)
+	gb.mainMemory.write(0xff86, 0x12)
+	gb.RET_cc([1]uint8{0xd0})
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x0001))
+
+	gb.modifyFlag(C_FLAG, SET)
+	gb.set16Reg(PC, 0x0000)
+	gb.set16Reg(SP, 0xff85)
+	gb.mainMemory.write(0xff85, 0x34)
+	gb.mainMemory.write(0xff86, 0x12)
+	gb.RET_cc([1]uint8{0xd8})
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x1234))
+
+}
+
+func TestRST(t *testing.T) {
+	gb := initGameboy()
+	gb.set16Reg(PC, 0x1122)
+	gb.set16Reg(SP, 0xffff)
+	gb.RST([1]uint8{0xf7})
+	assert.Equal(t, gb.get16Reg(SP), uint16(0xfffd))
+	assert.Equal(t, gb.mainMemory.read(0xfffe), uint8(0x11))
+	assert.Equal(t, gb.mainMemory.read(0xfffd), uint8(0x23))
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x0030))
+}
