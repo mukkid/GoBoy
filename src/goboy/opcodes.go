@@ -1452,3 +1452,16 @@ func (gb *GameBoy) RST(ins [1]uint8) {
 	gb.mainMemory.write(gb.regs[SP], uint8(ret_pc&0x00ff))
 	gb.set16Reg(PC, 0x0008*t)
 }
+
+// TODO: Implement DAA
+
+// CPL
+func (gb *GameBoy) CPL(ins [1]uint8) {
+	gb.set8Reg(A, ^gb.get8Reg(A))
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// NOP
+func (gb *GameBoy) NOP(ins [1]uint8) {
+	gb.regs[PC] += uint16(len(ins))
+}

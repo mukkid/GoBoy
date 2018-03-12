@@ -1075,3 +1075,18 @@ func TestRST(t *testing.T) {
 	assert.Equal(t, gb.mainMemory.read(0xfffd), uint8(0x23))
 	assert.Equal(t, gb.get16Reg(PC), uint16(0x0030))
 }
+
+// TODO: Write test for DAA
+
+func TestCPL(t *testing.T) {
+	gb := initGameboy()
+	gb.set8Reg(A, 0xc3)
+	gb.CPL([1]uint8{0x2f})
+	assert.Equal(t, gb.get8Reg(A), uint8(0x3c))
+}
+
+func TestNOP(t *testing.T) {
+	gb := initGameboy()
+	gb.NOP([1]uint8{0x00})
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x0001))
+}
