@@ -822,7 +822,14 @@ func (gb *GameBoy) ADD_hl_ss(ins [1]uint8) {
 func (gb *GameBoy) ADD_sp_e(ins [2]uint8) {
 	aVal := gb.get16Reg(SP)
 	bVal := uint16(ins[1])
-	out := int16(aVal) + int16(bVal)
+	msb_bVal := (bVal >> 7) & 0x01
+	msb_bVal |= msb_bVal << 1
+	msb_bVal |= msb_bVal << 2
+	msb_bVal |= msb_bVal << 4
+	msb_bVal |= msb_bVal << 8
+	msb_bVal &= 0xff00
+	bVal |= msb_bVal
+	out := aVal + bVal
 	gb.set16Reg(SP, uint16(out))
 	gb.modifyFlag(N_FLAG, CLEAR)
 	gb.modifyFlag(Z_FLAG, CLEAR)
