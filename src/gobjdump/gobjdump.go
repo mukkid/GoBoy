@@ -1,9 +1,9 @@
 package gobjdump
 
 import (
-    "bytes"
+	"bytes"
+	"encoding/binary"
 	"encoding/hex"
-    "encoding/binary"
 	"fmt"
 	"io"
 	"strings"
@@ -36,10 +36,10 @@ func (e *Z80AsmError) Error() string {
 }
 
 type GBInstruction struct {
-    addr uint32
-    instruction []uint8
-    mnemonic []string
-    err error
+	addr        uint32
+	instruction []uint8
+	mnemonic    []string
+	err         error
 }
 
 var r8 = []string{
@@ -712,7 +712,7 @@ func decodePrefixCB(r *bytes.Reader, instruction *[]uint8, mnemonic *[]string) e
  * Bumps the pointer in r
  * returns: the instruction bytes, the instruction mnemonic as an array of tokens
  */
-func DecodeInstruction(r *bytes.Reader, addr uint32) (*GBInstruction, uint32 ) {
+func DecodeInstruction(r *bytes.Reader, addr uint32) (*GBInstruction, uint32) {
 	/* If EOF, return empty string */
 	var instruction []uint8
 	nextByte, err := r.ReadByte()
@@ -1000,80 +1000,79 @@ func DecodeInstruction(r *bytes.Reader, addr uint32) (*GBInstruction, uint32 ) {
 			decodeRST(r, &instruction, &mnemonic)
 		}
 	}
-    addrPrev := addr
-    addr += uint32(len(instruction))
-    return &GBInstruction{
-        addr: addrPrev,
-        instruction: instruction,
-        mnemonic: mnemonic,
-        err: err,
-    }, addr
+	addrPrev := addr
+	addr += uint32(len(instruction))
+	return &GBInstruction{
+		addr:        addrPrev,
+		instruction: instruction,
+		mnemonic:    mnemonic,
+		err:         err,
+	}, addr
 }
 
 func (i *GBInstruction) ToStr() string {
-    instructionHex := make([]uint8, hex.EncodedLen(len(i.instruction)))
-    hex.Encode(instructionHex, i.instruction)
-    if i.err != nil {
-        return fmt.Sprintf("0x%016x: %-12s %-6s", i.addr, instructionHex, i.err.Error())
-    } else {
-        operands := ""
+	instructionHex := make([]uint8, hex.EncodedLen(len(i.instruction)))
+	hex.Encode(instructionHex, i.instruction)
+	if i.err != nil {
+		return fmt.Sprintf("0x%016x: %-12s %-6s", i.addr, instructionHex, i.err.Error())
+	} else {
+		operands := ""
 		if len(i.mnemonic) > 1 {
 			operands = strings.Join(i.mnemonic[1:], ", ")
 		}
 		return fmt.Sprintf("0x%016x: %-12s %-6s %s", i.addr, instructionHex, i.mnemonic[0], operands)
-    }
+	}
 }
 
 func DisassemblerLoop(r *bytes.Reader, start uint32, end uint32) int {
 	var addr uint32 = start
 	for gbInstruction, addr := DecodeInstruction(r, addr); gbInstruction != nil && gbInstruction.addr < end; gbInstruction, addr = DecodeInstruction(r, addr) {
 		/* Generate hex encoding of instruction */
-        fmt.Printf("%s\n", gbInstruction.ToStr())
+		fmt.Printf("%s\n", gbInstruction.ToStr())
 
-		if  gbInstruction.err != nil &&
-            gbInstruction.err.(*Z80AsmError).errorType != Z80AsmErrorIllegalInstruction &&
-            gbInstruction.err.(*Z80AsmError).errorType != Z80AsmErrorUnimplementedInstruction {
+		if gbInstruction.err != nil &&
+			gbInstruction.err.(*Z80AsmError).errorType != Z80AsmErrorIllegalInstruction &&
+			gbInstruction.err.(*Z80AsmError).errorType != Z80AsmErrorUnimplementedInstruction {
 			return 1
-        }
+		}
 
 	}
 	return 0
 }
 
 func GBROMPreamble(reader *bytes.Reader) int {
-    /* 0x0000 - 0x0067 contains the RST and Interrupt tables */
-    reader.Seek(int64(0x0000), 0)
-    fmt.Printf("---------------- %-40s ----------------\n", "RST and Interrupt table")
-    ret := DisassemblerLoop(reader, 0x0000, 0x0068)
-    if ret != 0 {
-        fmt.Printf("Oh noes!\n")
-        return ret
-    }
+	/* 0x0000 - 0x0067 contains the RST and Interrupt tables */
+	reader.Seek(int64(0x0000), 0)
+	fmt.Printf("---------------- %-40s ----------------\n", "RST and Interrupt table")
+	ret := DisassemblerLoop(reader, 0x0000, 0x0068)
+	if ret != 0 {
+		fmt.Printf("Oh noes!\n")
+		return ret
+	}
 
 	/*
 	 * Code entry point is at 0x0100-0x0103
 	 * It is almost always nop followed by jp
 	 */
-    fmt.Printf("\n")
-    fmt.Printf("---------------- %-40s ----------------\n", "Code Entry Point (Trampoline)")
+	fmt.Printf("\n")
+	fmt.Printf("---------------- %-40s ----------------\n", "Code Entry Point (Trampoline)")
 	var addr uint32 = 0x0100
 	reader.Seek(int64(addr), 0)
-	var	gbInstruction *GBInstruction
-	for gbInstruction, addr = DecodeInstruction(reader, addr);
-        gbInstruction != nil && gbInstruction.instruction[0] == 0x00; /* while nops */
-	    gbInstruction, addr = DecodeInstruction(reader, addr) {
-            fmt.Printf("%s\n", gbInstruction.ToStr())
+	var gbInstruction *GBInstruction
+	for gbInstruction, addr = DecodeInstruction(reader, addr); gbInstruction != nil && gbInstruction.instruction[0] == 0x00; /* while nops */
+	gbInstruction, addr = DecodeInstruction(reader, addr) {
+		fmt.Printf("%s\n", gbInstruction.ToStr())
 	}
-    fmt.Printf("%s\n", gbInstruction.ToStr())
+	fmt.Printf("%s\n", gbInstruction.ToStr())
 
-    fmt.Printf("\n")
-    fmt.Printf("---------------- %-40s ----------------\n", "Code Start")
+	fmt.Printf("\n")
+	fmt.Printf("---------------- %-40s ----------------\n", "Code Start")
 	var target uint16
 	switch gbInstruction.instruction[0] {
 	case 0xc3: /* jp */
 		/* compute the offset of the jp */
 		target = binary.LittleEndian.Uint16(gbInstruction.instruction[1:])
-        reader.Seek(int64(target), 0)
+		reader.Seek(int64(target), 0)
 		return DisassemblerLoop(reader, uint32(target), uint32(0x8000))
 	default:
 		fmt.Printf("Oh noes!\n")

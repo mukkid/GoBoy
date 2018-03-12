@@ -1,11 +1,11 @@
 package main
 
 import (
-    "bytes"
+	"bytes"
 	"fmt"
 	"github.com/pborman/getopt/v2"
+	"gobjdump"
 	"os"
-    "gobjdump"
 )
 
 var raw, gb *bool
@@ -23,16 +23,16 @@ func main_c(argv []string) int {
 		return 1
 	}
 
-    fstat, err:= file.Stat()
-    if err != nil {
+	fstat, err := file.Stat()
+	if err != nil {
 		fmt.Printf("%s\n", err.Error())
 		return 1
 	}
 
-    fileLen := fstat.Size()
-    binData := make([]uint8, fileLen)
-    file.Read(binData)
-    reader := bytes.NewReader(binData)
+	fileLen := fstat.Size()
+	binData := make([]uint8, fileLen)
+	file.Read(binData)
+	reader := bytes.NewReader(binData)
 
 	if *raw {
 		return gobjdump.DisassemblerLoop(reader, 0x0, uint32(fileLen))
