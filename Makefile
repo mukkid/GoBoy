@@ -6,6 +6,7 @@ OBJ			= obj
 BIN			= bin
 SRCFILES	:= $(wildcard $(BASE)/*.go)
 OBJECTS 	:= $(patsubst $(BASE)/%.go,$(OBJ)/%.o, $(SRCFILES))
+SHELL 		= /bin/bash
 
 all: fmt | $(BIN)
 	go get "github.com/stretchr/testify/assert"
