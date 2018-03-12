@@ -959,6 +959,56 @@ func TestJP_hl(t *testing.T) {
 }
 
 // TODO: Write CALL and CALL_cc tests
+func TestCALL_nn(t *testing.T) {
+	gb := initGameboy()
+	gb.set16Reg(PC, 0x1122)
+	gb.set16Reg(SP, 0xffff)
+	gb.CALL_nn([3]uint8{0xcd, 0x34, 0x12})
+	assert.Equal(t, gb.get16Reg(SP), uint16(0xfffd))
+	assert.Equal(t, gb.mainMemory.read(0xfffe), uint8(0x11))
+	assert.Equal(t, gb.mainMemory.read(0xfffd), uint8(0x25))
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x1234))
+}
+
+func TestCALL_cc_nn(t *testing.T) {
+	gb := initGameboy()
+	// Z_FLAG cases
+	gb.set16Reg(PC, 0x1122)
+	gb.set16Reg(SP, 0xffff)
+	gb.CALL_cc_nn([3]uint8{0xc4, 0x34, 0x12})
+	assert.Equal(t, gb.get16Reg(SP), uint16(0xfffd))
+	assert.Equal(t, gb.mainMemory.read(0xfffe), uint8(0x11))
+	assert.Equal(t, gb.mainMemory.read(0xfffd), uint8(0x25))
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x1234))
+
+	gb.set16Reg(PC, 0x1122)
+	gb.set16Reg(SP, 0xefff)
+	gb.modifyFlag(Z_FLAG, SET)
+	gb.CALL_cc_nn([3]uint8{0xc4, 0x34, 0x12})
+	assert.Equal(t, gb.get16Reg(SP), uint16(0xefff))
+	assert.Equal(t, gb.mainMemory.read(0xeffe), uint8(0x00))
+	assert.Equal(t, gb.mainMemory.read(0xeffd), uint8(0x00))
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x1125))
+
+	// C_FLAG cases
+	gb.set16Reg(PC, 0x1122)
+	gb.set16Reg(SP, 0xefff)
+	gb.modifyFlag(C_FLAG, CLEAR)
+	gb.CALL_cc_nn([3]uint8{0xdc, 0x34, 0x12})
+	assert.Equal(t, gb.get16Reg(SP), uint16(0xefff))
+	assert.Equal(t, gb.mainMemory.read(0xeffe), uint8(0x00))
+	assert.Equal(t, gb.mainMemory.read(0xeffd), uint8(0x00))
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x1125))
+
+	gb.set16Reg(PC, 0x1122)
+	gb.set16Reg(SP, 0xefff)
+	gb.modifyFlag(C_FLAG, SET)
+	gb.CALL_cc_nn([3]uint8{0xdc, 0x34, 0x12})
+	assert.Equal(t, gb.get16Reg(SP), uint16(0xeffd))
+	assert.Equal(t, gb.mainMemory.read(0xeffe), uint8(0x11))
+	assert.Equal(t, gb.mainMemory.read(0xeffd), uint8(0x25))
+	assert.Equal(t, gb.get16Reg(PC), uint16(0x1234))
+}
 
 func TestRET(t *testing.T) {
 	gb := initGameboy()

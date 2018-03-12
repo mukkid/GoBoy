@@ -1382,7 +1382,6 @@ func (gb *GameBoy) CALL_nn(ins [3]uint8) {
 	gb.mainMemory.write(gb.regs[SP], uint8(ret_pc>>8))
 	gb.regs[SP]--
 	gb.mainMemory.write(gb.regs[SP], uint8(ret_pc&0x00ff))
-	gb.regs[PC]++
 }
 
 // CALL cc nn
@@ -1400,7 +1399,6 @@ func (gb *GameBoy) CALL_cc_nn(ins [3]uint8) {
 		gb.mainMemory.write(gb.regs[SP], uint8(ret_pc>>8))
 		gb.regs[SP]--
 		gb.mainMemory.write(gb.regs[SP], uint8(ret_pc&0x00ff))
-		gb.regs[PC]++
 	} else {
 		gb.regs[PC] += uint16(len(ins))
 	}
