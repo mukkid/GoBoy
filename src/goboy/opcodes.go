@@ -1453,7 +1453,38 @@ func (gb *GameBoy) RST(ins [1]uint8) {
 	gb.set16Reg(PC, 0x0008*t)
 }
 
-// TODO: Implement DAA
+// DAA
+func (gb *GameBoy) DAA(ins [1]uint8) {
+	num := gb.get8Reg(A)
+	lsn := num & 0x0f        // least significant nibble
+	msn := (num & 0xf0) >> 4 // most significant nibble
+	correction := uint8(0x00)
+	if gb.getFlag(N_FLAG) == 0 { // Addition case
+		if gb.getFlag(H_FLAG) == 1 || lsn > 0x09 {
+			correction += 0x06
+		}
+		if gb.getFlag(C_FLAG) == 1 || msn > 0x09 {
+			correction += 0x60
+			gb.modifyFlag(C_FLAG, SET)
+		}
+	} else { // Subtraction case
+		if gb.getFlag(H_FLAG) == 1 {
+			correction -= 0x06
+		}
+		if gb.getFlag(C_FLAG) == 1 {
+			correction -= 0x60
+			gb.modifyFlag(C_FLAG, SET)
+		}
+	}
+	out := num + correction
+	if out == 0 {
+		gb.modifyFlag(Z_FLAG, SET)
+	} else {
+		gb.modifyFlag(Z_FLAG, CLEAR)
+	}
+	gb.set8Reg(A, out)
+	gb.regs[PC] += uint16(len(ins))
+}
 
 // CPL
 func (gb *GameBoy) CPL(ins [1]uint8) {
