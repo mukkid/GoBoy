@@ -1258,6 +1258,7 @@ func (gb *GameBoy) SWAP_hl(ins [1]uint8) {
 	gb.regs[PC] += uint16(len(ins))
 }
 
+// BIT b r
 func (gb *GameBoy) BIT_b_r(ins [2]uint8) {
 	r := Reg8ID(ins[1] & 0x07)
 	b := (ins[1] >> 3) & 0x07
@@ -1272,6 +1273,7 @@ func (gb *GameBoy) BIT_b_r(ins [2]uint8) {
 	gb.regs[PC] += uint16(len(ins))
 }
 
+// BIT b (HL)
 func (gb *GameBoy) BIT_b_hl(ins [2]uint8) {
 	b := (ins[1] >> 3) & 0x07
 	address := gb.get16Reg(HL)
@@ -1286,6 +1288,7 @@ func (gb *GameBoy) BIT_b_hl(ins [2]uint8) {
 	gb.regs[PC] += uint16(len(ins))
 }
 
+// SET b r
 func (gb *GameBoy) SET_b_r(ins [2]uint8) {
 	r := Reg8ID(ins[1] & 0x07)
 	b := (ins[1] >> 3) & 0x07
@@ -1294,6 +1297,7 @@ func (gb *GameBoy) SET_b_r(ins [2]uint8) {
 	gb.regs[PC] += uint16(len(ins))
 }
 
+// SET b (HL)
 func (gb *GameBoy) SET_b_hl(ins [2]uint8) {
 	b := (ins[1] >> 3) & 0x07
 	address := gb.get16Reg(HL)
@@ -1302,6 +1306,7 @@ func (gb *GameBoy) SET_b_hl(ins [2]uint8) {
 	gb.regs[PC] += uint16(len(ins))
 }
 
+// RES b r
 func (gb *GameBoy) RES_b_r(ins [2]uint8) {
 	r := Reg8ID(ins[1] & 0x07)
 	b := (ins[1] >> 3) & 0x07
@@ -1310,6 +1315,7 @@ func (gb *GameBoy) RES_b_r(ins [2]uint8) {
 	gb.regs[PC] += uint16(len(ins))
 }
 
+// RES b (HL)
 func (gb *GameBoy) RES_b_hl(ins [2]uint8) {
 	b := (ins[1] >> 3) & 0x07
 	address := gb.get16Reg(HL)
@@ -1318,11 +1324,13 @@ func (gb *GameBoy) RES_b_hl(ins [2]uint8) {
 	gb.regs[PC] += uint16(len(ins))
 }
 
+// JP nn
 func (gb *GameBoy) JP_nn(ins [3]uint8) {
 	address := binary.LittleEndian.Uint16(ins[1:])
 	gb.set16Reg(PC, address)
 }
 
+// JP cc nn
 func (gb *GameBoy) JP_cc_nn(ins [3]uint8) {
 	Z := gb.getFlag(Z_FLAG)
 	C := gb.getFlag(C_FLAG)
@@ -1338,12 +1346,14 @@ func (gb *GameBoy) JP_cc_nn(ins [3]uint8) {
 	}
 }
 
+// JR e
 func (gb *GameBoy) JR_e(ins [2]uint8) {
 	jump := int8(ins[1])
 	gb.regs[PC] += uint16(len(ins))
 	gb.regs[PC] = uint16(int16(gb.regs[PC]) + int16(jump))
 }
 
+// JR cc e
 func (gb *GameBoy) JR_cc_e(ins [2]uint8) {
 	Z := gb.getFlag(Z_FLAG)
 	C := gb.getFlag(C_FLAG)
@@ -1358,6 +1368,7 @@ func (gb *GameBoy) JR_cc_e(ins [2]uint8) {
 	gb.regs[PC] += uint16(len(ins))
 }
 
+// JP (HL)
 func (gb *GameBoy) JP_hl(ins [1]uint8) {
 	address := gb.get16Reg(HL)
 	gb.set16Reg(PC, address)
@@ -1371,7 +1382,6 @@ func (gb *GameBoy) CALL_nn(ins [3]uint8) {
 	gb.mainMemory.write(gb.regs[SP], uint8(ret_pc>>8))
 	gb.regs[SP]--
 	gb.mainMemory.write(gb.regs[SP], uint8(ret_pc&0x00ff))
-	gb.regs[PC]++
 }
 
 // CALL cc nn
@@ -1389,7 +1399,6 @@ func (gb *GameBoy) CALL_cc_nn(ins [3]uint8) {
 		gb.mainMemory.write(gb.regs[SP], uint8(ret_pc>>8))
 		gb.regs[SP]--
 		gb.mainMemory.write(gb.regs[SP], uint8(ret_pc&0x00ff))
-		gb.regs[PC]++
 	} else {
 		gb.regs[PC] += uint16(len(ins))
 	}
@@ -1402,4 +1411,44 @@ func (gb *GameBoy) RET(ins [1]uint8) {
 	address_msb := gb.mainMemory.read(gb.get16Reg(SP))
 	gb.regs[SP]++
 	gb.set16Reg(PC, binary.LittleEndian.Uint16([]uint8{address_lsb, address_msb}))
+}
+
+// RETI
+func (gb *GameBoy) RETI(ins [1]uint8) {
+	gb.interruptEnabled = true
+	address_lsb := gb.mainMemory.read(gb.get16Reg(SP))
+	gb.regs[SP]++
+	address_msb := gb.mainMemory.read(gb.get16Reg(SP))
+	gb.regs[SP]++
+	gb.set16Reg(PC, binary.LittleEndian.Uint16([]uint8{address_lsb, address_msb}))
+}
+
+// RET cc
+func (gb *GameBoy) RET_cc(ins [1]uint8) {
+	Z := gb.getFlag(Z_FLAG)
+	C := gb.getFlag(C_FLAG)
+	cc := ins[0] >> 3 & 0x03
+	if cc == 0x00 && Z == 0x00 ||
+		cc == 0x01 && Z == 0x01 ||
+		cc == 0x02 && C == 0x00 ||
+		cc == 0x03 && C == 0x01 {
+		address_lsb := gb.mainMemory.read(gb.get16Reg(SP))
+		gb.regs[SP]++
+		address_msb := gb.mainMemory.read(gb.get16Reg(SP))
+		gb.regs[SP]++
+		gb.set16Reg(PC, binary.LittleEndian.Uint16([]uint8{address_lsb, address_msb}))
+	} else {
+		gb.regs[PC] += uint16(len(ins))
+	}
+}
+
+// RST
+func (gb *GameBoy) RST(ins [1]uint8) {
+	t := uint16((ins[0] >> 3) & 0x07)
+	ret_pc := gb.regs[PC] + uint16(len(ins))
+	gb.regs[SP]--
+	gb.mainMemory.write(gb.regs[SP], uint8(ret_pc>>8))
+	gb.regs[SP]--
+	gb.mainMemory.write(gb.regs[SP], uint8(ret_pc&0x00ff))
+	gb.set16Reg(PC, 0x0008*t)
 }
