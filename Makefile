@@ -1,28 +1,17 @@
-PACKAGE 	= GoBoy
-GOPATH		= $(CURDIR)
-BASE		= $(GOPATH)/src
-TEST		= $(GOPATH)/test
-OBJ			= obj
-BIN			= bin
-SRCFILES	:= $(wildcard $(BASE)/*.go)
-OBJECTS 	:= $(patsubst $(BASE)/%.go,$(OBJ)/%.o, $(SRCFILES))
+all: build
 
-all: | $(BIN)
-	go get "github.com/stretchr/testify/assert"
-	go get -u github.com/go-gl/glfw/v3.2/glfw
-	go get "github.com/hajimehoshi/ebiten"
-	go build -o $(BIN)/goboy ./src/goboy
-	go get "github.com/pborman/getopt/v2"
-	go build -o $(BIN)/gobjdump ./src/gobjdump
+test: build
+	cd goboy && go $@ -v
+	cd gobjdump && go $@ -v
 
-.PHONY: test
-test: all
-	go test ./test
-	go test -v ./src/goboy
+build: deps
+	cd goboy && go $@
+	cd gobjdump && go $@
 
-$(BIN):
-	mkdir -p $@
-
-.PHONY: clean
 clean:
-	rm -rf pkg/ $(BIN)
+	cd goboy && go $@
+	cd gobjdump && go $@
+
+deps:
+	cd goboy && go get -d ./... && go list -f '{{ join .TestImports "\n" }}' | xargs go get -d
+	cd gobjdump && go get -d ./... && go list -f '{{ join .TestImports "\n" }}' | xargs go get -d
