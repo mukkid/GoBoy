@@ -1107,3 +1107,60 @@ func TestNOP(t *testing.T) {
 	gb.NOP([1]uint8{0x00})
 	assert.Equal(t, gb.get16Reg(PC), uint16(0x0001))
 }
+
+func TestRL_r(t *testing.T) {
+	gb := initGameboy()
+	gb.set8Reg(B, 0x80)
+	gb.modifyFlag(C_FLAG, CLEAR)
+	gb.RL_r([1]uint8{0x05}) // RL_r
+	assert.Equal(t, uint8(0x00), gb.get8Reg(B))
+	assert.Equal(t, uint8(0x90), gb.get8Reg(F)) // C,Z FLAG set, H,N FLAG cleared
+}
+
+func TestRL_hl(t *testing.T) {
+	gb := initGameboy()
+	gb.set16Reg(HL, 0xff85)
+	gb.mainMemory.write(0xff85, 0x11)
+	gb.modifyFlag(C_FLAG, CLEAR)
+	gb.RLC_hl([1]uint8{0xbe}) // RL_hl
+	assert.Equal(t, uint8(0x22), gb.mainMemory.read(0xff85))
+	assert.Equal(t, uint8(0x00), gb.get8Reg(F)) // Z, C,H,N FLAG cleared
+}
+
+func TestRRC_r(t *testing.T) {
+	gb := initGameboy()
+	gb.set8Reg(B, 0x01)
+	gb.modifyFlag(C_FLAG, CLEAR)
+	gb.RRC_r([1]uint8{0x05}) // RRC_r
+	assert.Equal(t, uint8(0x80), gb.get8Reg(B))
+	assert.Equal(t, uint8(0x10), gb.get8Reg(F)) // C FLAG set, Z,H,N FLAG cleared
+}
+
+func TestRRC_hl(t *testing.T) {
+	gb := initGameboy()
+	gb.set16Reg(HL, 0xff85)
+	gb.mainMemory.write(0xff85, 0x00)
+	gb.modifyFlag(C_FLAG, CLEAR)
+	gb.RRC_hl([1]uint8{0xbe}) // RRC_hl
+	assert.Equal(t, uint8(0x00), gb.mainMemory.read(0xff85))
+	assert.Equal(t, uint8(0x80), gb.get8Reg(F)) // Z FLAG set, C,H,N FLAG cleared
+}
+
+func TestRR_r(t *testing.T) {
+	gb := initGameboy()
+	gb.set8Reg(B, 0x01)
+	gb.modifyFlag(C_FLAG, CLEAR)
+	gb.RR_r([1]uint8{0x05}) // RR_r
+	assert.Equal(t, uint8(0x00), gb.get8Reg(B))
+	assert.Equal(t, uint8(0x90), gb.get8Reg(F)) // C,Z FLAG set, H,N FLAG cleared
+}
+
+func TestRR_hl(t *testing.T) {
+	gb := initGameboy()
+	gb.set16Reg(HL, 0xff85)
+	gb.mainMemory.write(0xff85, 0x8a)
+	gb.modifyFlag(C_FLAG, CLEAR)
+	gb.RR_hl([1]uint8{0xbe}) // RR_hl
+	assert.Equal(t, uint8(0x45), gb.mainMemory.read(0xff85))
+	assert.Equal(t, uint8(0x00), gb.get8Reg(F)) // Z, C,H,N FLAG cleared
+}
