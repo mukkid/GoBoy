@@ -1082,7 +1082,18 @@ func TestRST(t *testing.T) {
 	assert.Equal(t, gb.get16Reg(PC), uint16(0x0030))
 }
 
-// TODO: Write test for DAA
+func TestDAA(t *testing.T) {
+	gb := initGameboy()
+	gb.set8Reg(A, 0x45)
+	gb.set8Reg(B, 0x38)
+	gb.ADD_a_r([1]uint8{0x80})
+	gb.DAA([1]uint8{0x27})
+	assert.Equal(t, gb.get8Reg(A), uint8(0x83))
+
+	gb.SUB_a_r([1]uint8{0x90})
+	gb.DAA([1]uint8{0x27})
+	assert.Equal(t, gb.get8Reg(A), uint8(0x45))
+}
 
 func TestCPL(t *testing.T) {
 	gb := initGameboy()
