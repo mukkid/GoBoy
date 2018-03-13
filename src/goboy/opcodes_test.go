@@ -772,6 +772,12 @@ func TestADD_sp_e(t *testing.T) {
 	gb.ADD_sp_e([2]uint8{0xe8, 0x01})
 	assert.Equal(t, gb.get16Reg(SP), uint16(0x0000))
 	assert.Equal(t, gb.get8Reg(F), uint8(0x30))
+
+	gb.set16Reg(SP, 0xffff)
+	gb.ADD_sp_e([2]uint8{0xe8, 0xff})
+	assert.Equal(t, gb.get16Reg(SP), uint16(0xfffe))
+	assert.Equal(t, gb.get8Reg(F), uint8(0x30))
+
 }
 
 func TestINC_ss(t *testing.T) {
