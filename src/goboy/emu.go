@@ -1,9 +1,9 @@
 package main
 
-func (g *GameBoy) Step() () {
-    /* 3 is the max length of an instruction (I think) */
-    pc := g.regs[PC]
-    opCode := g.mainMemory.read(pc)
+func (g *GameBoy) Step() {
+	/* 3 is the max length of an instruction (I think) */
+	pc := g.regs[PC]
+	opCode := g.mainMemory.read(pc)
 
 	/* Switch on bits 6-7 */
 	switch opCode & 0xc0 {
@@ -15,8 +15,8 @@ func (g *GameBoy) Step() () {
 			switch opCode & 0x38 {
 			case 0x00:
 				/* nop */
-                instruction := [1]uint8{opCode}
-                g.NOP(instruction)
+				instruction := [1]uint8{opCode}
+				g.NOP(instruction)
 			case 0x08:
 				/* LD [nn], sp */
 			case 0x10:
@@ -27,14 +27,14 @@ func (g *GameBoy) Step() () {
 				/*
 				 * jr E - jump to PC + E
 				 */
-            case 0x20:
-                /* jr nz, nn */
-            case 0x28:
-                /* jr z, nn */
-            case 0x30:
-                /* jr nc, nn */
-            case 0x38:
-                /* jr c, nn */
+			case 0x20:
+				/* jr nz, nn */
+			case 0x28:
+				/* jr z, nn */
+			case 0x30:
+				/* jr nc, nn */
+			case 0x38:
+				/* jr c, nn */
 			}
 		case 0x01:
 			/* switch on bit 3 */
@@ -117,12 +117,12 @@ func (g *GameBoy) Step() () {
 				/* ld r8, [hl] */
 			}
 		default:
-            switch opCode & 0x38 {
-            case 0x30:
-                /* ld [hl], r8 */
-            default:
-                /* ld r8, r8 */
-            }
+			switch opCode & 0x38 {
+			case 0x30:
+				/* ld [hl], r8 */
+			default:
+				/* ld r8, r8 */
+			}
 		}
 	case 0x80:
 		/* assorted ALU instructions on A and register/memory location */
@@ -137,15 +137,15 @@ func (g *GameBoy) Step() () {
 			case 0x10:
 				fallthrough
 			case 0x18:
-			    /* ret CC - conditional return */
+				/* ret CC - conditional return */
 			case 0x20:
-                /* ld [0xff00 + n], A */
+				/* ld [0xff00 + n], A */
 			case 0x28:
-                /* add SP, n */
+				/* add SP, n */
 			case 0x30:
-                /* ld A, [0xff00 + n] */
+				/* ld A, [0xff00 + n] */
 			case 0x38:
-                /* ldhl SP, n */
+				/* ldhl SP, n */
 			}
 		case 0x01:
 			switch opCode & 0x08 {
@@ -173,15 +173,15 @@ func (g *GameBoy) Step() () {
 			case 0x10:
 				fallthrough
 			case 0x18:
-                /* JP cc (conditional jump) */
+				/* JP cc (conditional jump) */
 			case 0x20:
-                /* LD [0xff00 + C], A */
+				/* LD [0xff00 + C], A */
 			case 0x28:
-                /* LD [nn], A */
+				/* LD [nn], A */
 			case 0x30:
-                /* LD A, [0xff00 + C] */
+				/* LD A, [0xff00 + C] */
 			case 0x38:
-                /* LD A, [nn] */
+				/* LD A, [nn] */
 			}
 		case 0x03:
 			switch opCode & 0x38 {
@@ -189,28 +189,28 @@ func (g *GameBoy) Step() () {
 				/* jp nn */
 			case 0x08:
 				/* 0xcb prefix */
-                prefix := opCode
-                opCode = g.mainMemory.read(pc + 1)
-                switch opCode & 0xc0 {
-                case 0x00:
-		            /* assorted rotate & shift operations on register or memory */
-	            case 0x40:
-		            /* bit b, r8 */
-                    instruction := [2]uint8{prefix, opCode}
-                    g.BIT_b_r(instruction)
-	            case 0x80:
-		            /* res b, r8 */
-	            case 0xc0:
-		            /* set b, r8 */
-                }
+				prefix := opCode
+				opCode = g.mainMemory.read(pc + 1)
+				switch opCode & 0xc0 {
+				case 0x00:
+					/* assorted rotate & shift operations on register or memory */
+				case 0x40:
+					/* bit b, r8 */
+					instruction := [2]uint8{prefix, opCode}
+					g.BIT_b_r(instruction)
+				case 0x80:
+					/* res b, r8 */
+				case 0xc0:
+					/* set b, r8 */
+				}
 			case 0x10:
-                /* Illegal */
+				/* Illegal */
 			case 0x18:
-                /* Illegal */
+				/* Illegal */
 			case 0x20:
-                /* Illegal */
+				/* Illegal */
 			case 0x28:
-                /* Illegal */
+				/* Illegal */
 			case 0x30:
 				/* di */
 			case 0x38:
@@ -226,9 +226,9 @@ func (g *GameBoy) Step() () {
 			case 0x10:
 				fallthrough
 			case 0x18:
-                /* Call cc - conditional call */
+				/* Call cc - conditional call */
 			default:
-                /* Illegal */
+				/* Illegal */
 			}
 		case 0x05:
 			switch opCode & 0x08 {
@@ -239,11 +239,11 @@ func (g *GameBoy) Step() () {
 				case 0x00:
 					/* call nn */
 				case 0x10:
-                    /* Illegal */
+					/* Illegal */
 				case 0x20:
-                    /* Illegal */
+					/* Illegal */
 				case 0x30:
-                    /* Illegal */
+					/* Illegal */
 				}
 			}
 		case 0x06:
