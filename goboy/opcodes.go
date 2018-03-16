@@ -59,6 +59,38 @@ func (gb *GameBoy) LD_a_de(ins []uint8) {
 	gb.regs[PC] += uint16(len(ins))
 }
 
+// Load A <- (0xff00 + C)
+func (gb *GameBoy) LD_a_c(ins []uint8) {
+    address := uint16(gb.get8Reg(C)) + 0xff00
+    value := gb.mainMemory.read(address)
+    gb.set8Reg(A, value)
+    gb.regs[PC] += uint16(len(ins))
+}
+
+// Load (0xff00 + C) <- A
+func (gb *GameBoy) LD_c_a(ins []uint8) {
+    value := gb.get8Reg(A)
+    address := uint16(gb.get8Reg(C)) + 0xff00
+    gb.mainMemory.write(address, value)
+    gb.regs[PC] += uint16(len(ins))
+}
+
+// Load A <- (0xff00 + n)
+func (gb *GameBoy) LD_a_n(ins []uint8) {
+    address := uint16(ins[1]) + 0xff00
+    value := gb.mainMemory.read(address)
+    gb.set8Reg(A, value)
+    gb.regs[PC] += uint16(len(ins))
+}
+
+// Load (0xff00 + n) <- A
+func (gb *GameBoy) LD_n_a(ins []uint8) {
+    address := uint16(ins[1]) + 0xff00
+    value := gb.get8Reg(A)
+    gb.mainMemory.write(address, value)
+    gb.regs[PC] += uint16(len(ins))
+}
+
 // Load A <- (nn) 3B
 func (gb *GameBoy) LD_a_nn(ins []uint8) {
 	address := binary.LittleEndian.Uint16(ins[1:])
@@ -87,6 +119,42 @@ func (gb *GameBoy) LD_nn_a(ins []uint8) {
 	gb.regs[PC] += uint16(len(ins))
 }
 
+// Load A <- (HL); HL++
+func (gb *GameBoy) LD_a_hli(ins []uint8) {
+    address := gb.get16Reg(HL)
+    value := gb.mainMemory.read(address)
+    gb.set8Reg(A, value)
+    gb.set16Reg(HL, address + 0x1)
+    gb.regs[PC] += uint16(len(ins))
+}
+
+// Load A <- (HL); HL--
+func (gb *GameBoy) LD_a_hld(ins []uint8) {
+    address := gb.get16Reg(HL)
+    value := gb.mainMemory.read(address)
+    gb.set8Reg(A, value)
+    gb.set16Reg(HL, address - 0x1)
+    gb.regs[PC] += uint16(len(ins))
+}
+
+// Load (HL) <- A; HL++
+func (gb *GameBoy) LD_hli_a(ins []uint8) {
+    value := gb.get8Reg(A)
+    address := gb.get16Reg(HL)
+    gb.mainMemory.write(address, value)
+    gb.set16Reg(HL, address + 0x1)
+    gb.regs[PC] += uint16(len(ins))
+}
+
+// Load (HL) <- A; HL--
+func (gb *GameBoy) LD_hld_a(ins []uint8) {
+    value := gb.get8Reg(A)
+    address := gb.get16Reg(HL)
+    gb.mainMemory.write(address, value)
+    gb.set16Reg(HL, address - 0x1)
+    gb.regs[PC] += uint16(len(ins))
+}
+
 /* 16 BIT LOADS */
 
 // LD dd <- nn 3B
@@ -94,49 +162,6 @@ func (gb *GameBoy) LD_dd_nn(ins []uint8) {
 	reg := Reg16ID(ins[0] >> 4)
 	nn := binary.LittleEndian.Uint16(ins[1:])
 	gb.set16Reg(reg, nn)
-	gb.regs[PC] += uint16(len(ins))
-}
-
-// LD HL <- (nn) 3B
-func (gb *GameBoy) LD_hl_nn(ins []uint8) {
-	address := binary.LittleEndian.Uint16(ins[1:])
-	lowVal := gb.mainMemory.read(address)
-	highVal := gb.mainMemory.read(address + 1)
-	gb.set8Reg(H, highVal)
-	gb.set8Reg(L, lowVal)
-	gb.regs[PC] += uint16(len(ins))
-}
-
-// LD dd <- (NN) 4B
-func (gb *GameBoy) LD_dd_NN(ins []uint8) {
-	reg := Reg16ID((ins[1] >> 4) & 0x03)
-	address := binary.LittleEndian.Uint16(ins[2:])
-	lowVal := gb.mainMemory.read(address)
-	highVal := gb.mainMemory.read(address + 1)
-	val := uint16(lowVal) | (uint16(highVal) << 8)
-	gb.set16Reg(reg, val)
-	gb.regs[PC] += uint16(len(ins))
-}
-
-// LD (nn) <- HL 3B
-func (gb *GameBoy) LD_nn_hl(ins []uint8) {
-	address := binary.LittleEndian.Uint16(ins[1:])
-	highVal := gb.get8Reg(H)
-	lowVal := gb.get8Reg(L)
-	gb.mainMemory.write(address, lowVal)
-	gb.mainMemory.write(address+1, highVal)
-	gb.regs[PC] += uint16(len(ins))
-}
-
-// LD (nn) <- dd 4B
-func (gb *GameBoy) LD_nn_dd(ins []uint8) {
-	reg := Reg16ID((ins[1] >> 4) & 0x03)
-	value := gb.get16Reg(reg)
-	lowVal := uint8(value)
-	highVal := uint8(value >> 8)
-	address := binary.LittleEndian.Uint16(ins[2:])
-	gb.mainMemory.write(address, lowVal)
-	gb.mainMemory.write(address+1, highVal)
 	gb.regs[PC] += uint16(len(ins))
 }
 
@@ -175,6 +200,38 @@ func (gb *GameBoy) POP_qq(ins []uint8) {
 	val := uint16(lowVal) | (uint16(highVal) << 8)
 	gb.set16Reg(reg, val)
 	gb.regs[PC] += 1
+}
+
+// Load HL <- SP + e
+func (gb *GameBoy) LDHL_sp_e(ins []uint8) {
+    aVal := gb.get16Reg(SP)
+    bVal := uint16(int8(ins[1]))
+    out := aVal + bVal
+    gb.set16Reg(HL, out)
+    gb.modifyFlag(Z_FLAG, CLEAR)
+    gb.modifyFlag(N_FLAG, CLEAR)
+    if (aVal&0x0fff)+(bVal&0x0fff) > 0x0fff {
+        gb.modifyFlag(H_FLAG, SET)
+    } else {
+        gb.modifyFlag(H_FLAG, CLEAR)
+    }
+    if uint32(aVal)+uint32(bVal) > 0xffff {
+        gb.modifyFlag(C_FLAG, SET)
+    } else {
+        gb.modifyFlag(C_FLAG, CLEAR)
+    }
+    gb.regs[PC] += uint16(len(ins))
+}
+
+// Load (nn) <- SP_lower; (nn + 1) <- SP_upper
+func (gb *GameBoy) LD_nn_sp(ins []uint8) {
+    sp := gb.get16Reg(SP)
+    sp_lb := uint8(sp)
+    sp_hb := uint8(sp >> 8)
+    address := binary.LittleEndian.Uint16(ins[1:])
+    gb.mainMemory.write(address, sp_lb)
+    gb.mainMemory.write(address + 0x1, sp_hb)
+    gb.regs[PC] += uint16(len(ins))
 }
 
 // ADD A, r 1B
