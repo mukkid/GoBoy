@@ -89,6 +89,7 @@ func (gb *GameBoy) LD_n_a(ins []uint8) {
 	value := gb.get8Reg(A)
 	gb.mainMemory.write(address, value)
 	gb.regs[PC] += uint16(len(ins))
+
 }
 
 // Load A <- (nn) 3B

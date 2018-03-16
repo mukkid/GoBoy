@@ -232,7 +232,6 @@ func TestLDHL_sp_e(t *testing.T) {
 	gb.LDHL_sp_e([]uint8{0xf8, 0x42})
 	assert.Equal(t, gb.get16Reg(HL), uint16(0x0041))
 	assert.Equal(t, gb.get8Reg(F), uint8(0x30))
-
 }
 
 func TestLD_nn_sp(t *testing.T) {
