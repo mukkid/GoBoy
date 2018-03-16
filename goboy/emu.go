@@ -248,14 +248,6 @@ func (g *GameBoy) Step() {
 				prefix := opCode
 				opCode = g.mainMemory.read(pc + 1)
 				switch opCode & 0xc0 {
-                //"rlc",
-	            //"rrc",
-	            //"rl",
-	            //"rr",
-	            //"sla",
-	            //"sra",
-	            //"swap",
-	            //"srl",
 				case 0x00:
 					/* assorted rotate & shift operations on register or memory */
                     switch opCode & 0x38 {
