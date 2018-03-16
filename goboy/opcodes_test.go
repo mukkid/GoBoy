@@ -125,43 +125,6 @@ func TestLD_dd_nn(t *testing.T) {
 	assert.Equal(t, gb.get16Reg(HL), uint16(0xabcd))
 }
 
-func TestLD_hl_nn(t *testing.T) {
-	gb := initGameboy()
-
-	gbROM := newGBROM()
-	gbROM.rom[0x0123] = 0x37
-	gbROM.rom[0x0124] = 0xa1
-	gb.mainMemory.cartridge = gbROM
-	gb.LD_hl_nn([]uint8{0x2a, 0x23, 0x01}) // LD HL <- (0x0123)
-	assert.Equal(t, gb.get16Reg(HL), uint16(0xa137))
-}
-
-func TestLD_dd_NN(t *testing.T) {
-	gb := initGameboy()
-	gbROM := newGBROM()
-	gbROM.rom[0x0123] = 0xcd
-	gbROM.rom[0x0124] = 0xab
-	gb.mainMemory.cartridge = gbROM
-	gb.LD_dd_NN([]uint8{0xed, 0x5b, 0x23, 0x01}) // LD DE (0x0123)
-	assert.Equal(t, gb.get16Reg(DE), uint16(0xabcd))
-}
-
-func TestLD_nn_hl(t *testing.T) {
-	gb := initGameboy()
-	gb.set16Reg(HL, 0x1234)
-	gb.LD_nn_hl([]uint8{0x22, 0x85, 0xff}) // LD (0xff85) HL
-	assert.Equal(t, gb.mainMemory.read(0xff85), uint8(0x34))
-	assert.Equal(t, gb.mainMemory.read(0xff86), uint8(0x12))
-}
-
-func TestLD_nn_dd(t *testing.T) {
-	gb := initGameboy()
-	gb.set16Reg(DE, 0x1234)
-	gb.LD_nn_dd([]uint8{0xed, 0x53, 0x85, 0xff}) // LD 0xff85 DE
-	assert.Equal(t, gb.mainMemory.read(0xff85), uint8(0x34))
-	assert.Equal(t, gb.mainMemory.read(0xff86), uint8(0x12))
-}
-
 func TestLD_sp_hl(t *testing.T) {
 	gb := initGameboy()
 	gb.set16Reg(HL, 0x1234)
