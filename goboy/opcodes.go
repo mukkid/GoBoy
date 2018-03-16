@@ -59,12 +59,41 @@ func (gb *GameBoy) LD_a_de(ins []uint8) {
 	gb.regs[PC] += uint16(len(ins))
 }
 
-// TODO: Implement LD A, (C) GB doc p:86
-// TODO: Implement LD (C), A GB doc p:87
-// TODO: Implement LD A, (n) GB doc p:87
-// TODO: Implement LD (n), A GB doc p:87
+// LOAD A <- (0xff00 + C)
+// TODO: Implement Unittest
+func (gb *GameBoy) LD_a_c(ins []uint8) {
+    address := uint16(gb.get8Reg(C)) + 0xff00
+    value := gb.mainMemory.read(address)
+    gb.set8Reg(A, value)
+    gb.regs[PC] += uint16(len(ins))
+}
 
+// Load (0xff00 + C) <- A
+// TODO: Implement Unittest
+func (gb *GameBoy) LD_c_a(ins []uint8) {
+    value := gb.get8Reg(A)
+    address := uint16(gb.get8Reg(C)) + 0xff00
+    gb.mainMemory.write(address, value)
+    gb.regs[PC] += uint16(len(ins))
+}
 
+// Load A <- (0xff00 + n)
+// TODO: Implement Unittest
+func (gb *GameBoy) LD_a_n(ins []uint8) {
+    address := uint16(ins[1]) + 0xff00
+    value := gb.mainMemory.read(address)
+    gb.set8Reg(A, value)
+    gb.regs[PC] += uint16(len(ins))
+}
+
+// Load (0xff00 + n) <- A
+// TODO: Implement Unittest
+func (gb *GameBoy) LD_n_a(ins []uint8) {
+    address := uint16(ins[1]) + 0xff00
+    value := gb.get8Reg(A)
+    gb.mainMemory.write(address, value)
+    gb.regs[PC] += uint16(len(ins))
+}
 
 // Load A <- (nn) 3B
 func (gb *GameBoy) LD_a_nn(ins []uint8) {
