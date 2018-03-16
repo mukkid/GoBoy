@@ -125,7 +125,64 @@ func (g *GameBoy) Step() {
 			}
 		}
 	case 0x80:
-		/* assorted ALU instructions on A and register/memory location */
+        switch opCode & 0x38 {
+        case 0x00:
+            switch opCode & 007 {
+            case 0x06:
+                /* add A, [HL] */
+            default:
+                /* add A, r8 */
+            }
+        case 0x08:
+            switch opCode & 007 {
+            case 0x06:
+                /* adc A, [HL] */
+            default:
+                /* adc A, r8 */
+            }
+        case 0x10:
+            switch opCode & 007 {
+            case 0x06:
+                /* sub [HL] */
+            default:
+                /* sub r8 */
+            }
+        case 0x18:
+            switch opCode & 007 {
+            case 0x06:
+                /* sbc A, [HL] */
+            default:
+                /* sbc A, r8 */
+            }
+        case 0x20:
+            switch opCode & 007 {
+            case 0x06:
+                /* and [HL] */
+            default:
+                /* and r8 */
+            }
+        case 0x28:
+            switch opCode & 007 {
+            case 0x06:
+                /* xor [HL] */
+            default:
+                /* xor r8 */
+            }
+        case 0x30:
+            switch opCode & 007 {
+            case 0x06:
+                /* or [HL] */
+            default:
+                /* or r8 */
+            }
+        case 0x38:
+            switch opCode & 007 {
+            case 0x06:
+                /* cp [HL] */
+            default:
+                /* cp r8 */
+            }
+        }
 	case 0xc0:
 		switch opCode & 0x07 {
 		case 0x00:
@@ -164,7 +221,6 @@ func (g *GameBoy) Step() {
 				}
 			}
 		case 0x02:
-			/* jp cc, nn - conditional absolute jump */
 			switch opCode & 0x38 {
 			case 0x00:
 				fallthrough
@@ -173,7 +229,7 @@ func (g *GameBoy) Step() {
 			case 0x10:
 				fallthrough
 			case 0x18:
-				/* JP cc (conditional jump) */
+				/* JP cc, nn (conditional jump) */
 			case 0x20:
 				/* LD [0xff00 + C], A */
 			case 0x28:
@@ -192,8 +248,74 @@ func (g *GameBoy) Step() {
 				prefix := opCode
 				opCode = g.mainMemory.read(pc + 1)
 				switch opCode & 0xc0 {
+                //"rlc",
+	            //"rrc",
+	            //"rl",
+	            //"rr",
+	            //"sla",
+	            //"sra",
+	            //"swap",
+	            //"srl",
 				case 0x00:
 					/* assorted rotate & shift operations on register or memory */
+                    switch opCode & 0x38 {
+                    case 0x00:
+                        switch opCode & 0x07 {
+                        case 0x06:
+                            /* rlc [HL] */
+                        default:
+                            /* rlc r8 */
+                        }
+                    case 0x08:
+                        switch opCode & 0x07 {
+                        case 0x06:
+                            /* rrc [HL] */
+                        default:
+                            /* rrc r8 */
+                        }
+                    case 0x10:
+                        switch opCode & 0x07 {
+                        case 0x06:
+                            /* rl [HL] */
+                        default:
+                            /* rl r8 */
+                        }
+                    case 0x18:
+                        switch opCode & 0x07 {
+                        case 0x06:
+                            /* rr [HL] */
+                        default:
+                            /* rr r8 */
+                        }
+                    case 0x20:
+                        switch opCode & 0x07 {
+                        case 0x06:
+                            /* sla [HL] */
+                        default:
+                            /* sla r8 */
+                        }
+                    case 0x28:
+                        switch opCode & 0x07 {
+                        case 0x06:
+                            /* sra [HL] */
+                        default:
+                            /* sra r8 */
+                        }
+                    case 0x30:
+                        switch opCode & 0x07 {
+                        case 0x06:
+                            /* swap [HL] */
+                        default:
+                            /* swap r8 */
+                        }
+                    case 0x38:
+                        switch opCode & 0x07 {
+                        case 0x06:
+                            /* srl [HL] */
+                        default:
+                            /* srl r8 */
+                        }
+                    }
 				case 0x40:
 					/* bit b, r8 */
 					instruction := []uint8{prefix, opCode}
@@ -247,7 +369,24 @@ func (g *GameBoy) Step() {
 				}
 			}
 		case 0x06:
-			/* assorted ALU instructions on A and immediate operand */
+            switch opCode & 0x38 {
+            case 0x00:
+                /* add A, nn */
+            case 0x08:
+                /* adc A, nn */
+            case 0x10:
+                /* sub nn */
+            case 0x18:
+                /* sbc a, nn */
+            case 0x20:
+                /* and nn */
+            case 0x28:
+                /* xor nn */
+            case 0x30:
+                /* or nn */
+            case 0x38:
+                /* cp nn */
+            }
 		case 0x07:
 			/* rst p */
 		}
