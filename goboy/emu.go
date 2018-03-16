@@ -15,7 +15,7 @@ func (g *GameBoy) Step() {
 			switch opCode & 0x38 {
 			case 0x00:
 				/* nop */
-				instruction := [1]uint8{opCode}
+				instruction := []uint8{opCode}
 				g.NOP(instruction)
 			case 0x08:
 				/* LD [nn], sp */
@@ -196,7 +196,7 @@ func (g *GameBoy) Step() {
 					/* assorted rotate & shift operations on register or memory */
 				case 0x40:
 					/* bit b, r8 */
-					instruction := [2]uint8{prefix, opCode}
+					instruction := []uint8{prefix, opCode}
 					g.BIT_b_r(instruction)
 				case 0x80:
 					/* res b, r8 */
