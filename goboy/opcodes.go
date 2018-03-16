@@ -59,8 +59,7 @@ func (gb *GameBoy) LD_a_de(ins []uint8) {
 	gb.regs[PC] += uint16(len(ins))
 }
 
-// LOAD A <- (0xff00 + C)
-// TODO: Implement Unittest
+// Load A <- (0xff00 + C)
 func (gb *GameBoy) LD_a_c(ins []uint8) {
     address := uint16(gb.get8Reg(C)) + 0xff00
     value := gb.mainMemory.read(address)
@@ -69,7 +68,6 @@ func (gb *GameBoy) LD_a_c(ins []uint8) {
 }
 
 // Load (0xff00 + C) <- A
-// TODO: Implement Unittest
 func (gb *GameBoy) LD_c_a(ins []uint8) {
     value := gb.get8Reg(A)
     address := uint16(gb.get8Reg(C)) + 0xff00
@@ -78,7 +76,6 @@ func (gb *GameBoy) LD_c_a(ins []uint8) {
 }
 
 // Load A <- (0xff00 + n)
-// TODO: Implement Unittest
 func (gb *GameBoy) LD_a_n(ins []uint8) {
     address := uint16(ins[1]) + 0xff00
     value := gb.mainMemory.read(address)
@@ -87,7 +84,6 @@ func (gb *GameBoy) LD_a_n(ins []uint8) {
 }
 
 // Load (0xff00 + n) <- A
-// TODO: Implement Unittest
 func (gb *GameBoy) LD_n_a(ins []uint8) {
     address := uint16(ins[1]) + 0xff00
     value := gb.get8Reg(A)
@@ -124,7 +120,6 @@ func (gb *GameBoy) LD_nn_a(ins []uint8) {
 }
 
 // Load A <- (HL); HL++
-// TODO: Implement Unittest
 func (gb *GameBoy) LD_a_hli(ins []uint8) {
     address := gb.get16Reg(HL)
     value := gb.mainMemory.read(address)
@@ -134,7 +129,6 @@ func (gb *GameBoy) LD_a_hli(ins []uint8) {
 }
 
 // Load A <- (HL); HL--
-// TODO: Implement Unittest
 func (gb *GameBoy) LD_a_hld(ins []uint8) {
     address := gb.get16Reg(HL)
     value := gb.mainMemory.read(address)
@@ -144,7 +138,6 @@ func (gb *GameBoy) LD_a_hld(ins []uint8) {
 }
 
 // Load (HL) <- A; HL++
-// TODO: Implement Unittest
 func (gb *GameBoy) LD_hli_a(ins []uint8) {
     value := gb.get8Reg(A)
     address := gb.get16Reg(HL)
@@ -154,7 +147,6 @@ func (gb *GameBoy) LD_hli_a(ins []uint8) {
 }
 
 // Load (HL) <- A; HL--
-// TODO: Implement Unittest
 func (gb *GameBoy) LD_hld_a(ins []uint8) {
     value := gb.get8Reg(A)
     address := gb.get16Reg(HL)
@@ -211,7 +203,6 @@ func (gb *GameBoy) POP_qq(ins []uint8) {
 }
 
 // Load HL <- SP + e
-// TODO: Implement Unittest
 func (gb *GameBoy) LDHL_sp_e(ins []uint8) {
     aVal := gb.get16Reg(SP)
     bVal := uint16(int8(ins[1]))
@@ -233,7 +224,6 @@ func (gb *GameBoy) LDHL_sp_e(ins []uint8) {
 }
 
 // Load (nn) <- SP_lower; (nn + 1) <- SP_upper
-// TODO: Implement Unittest
 func (gb *GameBoy) LD_nn_sp(ins []uint8) {
     sp := gb.get16Reg(SP)
     sp_lb := uint8(sp)
