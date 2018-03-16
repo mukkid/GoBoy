@@ -59,6 +59,13 @@ func (gb *GameBoy) LD_a_de(ins []uint8) {
 	gb.regs[PC] += uint16(len(ins))
 }
 
+// TODO: Implement LD A, (C) GB doc p:86
+// TODO: Implement LD (C), A GB doc p:87
+// TODO: Implement LD A, (n) GB doc p:87
+// TODO: Implement LD (n), A GB doc p:87
+
+
+
 // Load A <- (nn) 3B
 func (gb *GameBoy) LD_a_nn(ins []uint8) {
 	address := binary.LittleEndian.Uint16(ins[1:])
@@ -87,6 +94,11 @@ func (gb *GameBoy) LD_nn_a(ins []uint8) {
 	gb.regs[PC] += uint16(len(ins))
 }
 
+// TODO: LD A, (HLI) GB doc p:88
+// TODO: LD A, (HLD) GB doc p:88
+// TODO: LD (HLI), A GB doc p:89
+// TODO: LD (HLD), A GB doc p:89
+
 /* 16 BIT LOADS */
 
 // LD dd <- nn 3B
@@ -97,6 +109,7 @@ func (gb *GameBoy) LD_dd_nn(ins []uint8) {
 	gb.regs[PC] += uint16(len(ins))
 }
 
+// TODO: DEPRECATE
 // LD HL <- (nn) 3B
 func (gb *GameBoy) LD_hl_nn(ins []uint8) {
 	address := binary.LittleEndian.Uint16(ins[1:])
@@ -107,6 +120,7 @@ func (gb *GameBoy) LD_hl_nn(ins []uint8) {
 	gb.regs[PC] += uint16(len(ins))
 }
 
+// TODO: DEPRECATE
 // LD dd <- (NN) 4B
 func (gb *GameBoy) LD_dd_NN(ins []uint8) {
 	reg := Reg16ID((ins[1] >> 4) & 0x03)
@@ -118,6 +132,7 @@ func (gb *GameBoy) LD_dd_NN(ins []uint8) {
 	gb.regs[PC] += uint16(len(ins))
 }
 
+// TODO: DEPRECATE
 // LD (nn) <- HL 3B
 func (gb *GameBoy) LD_nn_hl(ins []uint8) {
 	address := binary.LittleEndian.Uint16(ins[1:])
@@ -128,6 +143,7 @@ func (gb *GameBoy) LD_nn_hl(ins []uint8) {
 	gb.regs[PC] += uint16(len(ins))
 }
 
+// TODO: DEPRECATE
 // LD (nn) <- dd 4B
 func (gb *GameBoy) LD_nn_dd(ins []uint8) {
 	reg := Reg16ID((ins[1] >> 4) & 0x03)
@@ -176,6 +192,9 @@ func (gb *GameBoy) POP_qq(ins []uint8) {
 	gb.set16Reg(reg, val)
 	gb.regs[PC] += 1
 }
+
+// TODO: LDHL SP, e GB doc p:91
+// TODO: LD (nn),SP GB doc p:91
 
 // ADD A, r 1B
 func (gb *GameBoy) ADD_a_r(ins []uint8) {
