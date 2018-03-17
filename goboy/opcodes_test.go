@@ -1219,3 +1219,28 @@ func TestRR_hl(t *testing.T) {
 	assert.Equal(t, uint8(0x45), gb.mainMemory.read(0xff85))
 	assert.Equal(t, uint8(0x00), gb.get8Reg(F)) // Z, C,H,N FLAG cleared
 }
+
+func TestSCF(t *testing.T) {
+	gb := initGameboy()
+	gb.SCF([]uint8{0x37})
+	assert.Equal(t, gb.getFlag(C_FLAG), uint8(1))
+}
+
+func TestCCF(t *testing.T) {
+	gb := initGameboy()
+	gb.modifyFlag(C_FLAG, SET)
+	gb.CCF([]uint8{0x3f})
+	assert.Equal(t, gb.getFlag(C_FLAG), uint8(0))
+}
+
+func TestDI(t *testing.T) {
+	gb := initGameboy()
+	gb.DI([]uint8{0xf3})
+	assert.True(t, !gb.interruptEnabled)
+}
+
+func TestEI(t *testing.T) {
+	gb := initGameboy()
+	gb.EI([]uint8{0xfb})
+	assert.True(t, gb.interruptEnabled)
+}
