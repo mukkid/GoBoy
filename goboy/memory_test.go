@@ -52,3 +52,14 @@ func TestGBMemWriteHRAM(t *testing.T) {
 	mem.write(addr, 0x1c)
 	assert.Equal(t, mem.hram[addr-0xff80], uint8(0x1c))
 }
+
+/* Test reading n bytes */
+func TestReadN(t *testing.T) {
+	mem := &GBMem{}
+	mem.write(0xff85, 0x12)
+	mem.write(0xff86, 0x34)
+	mem.write(0xff87, 0x56)
+	assert.Equal(t, mem.readN(0xff85, 3), []uint8{0x12, 0x34, 0x56})
+	assert.Equal(t, mem.readN(0xff85, 2), []uint8{0x12, 0x34})
+	assert.Equal(t, mem.readN(0xff85, 1), []uint8{0x12})
+}

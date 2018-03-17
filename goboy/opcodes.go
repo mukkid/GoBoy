@@ -1550,6 +1550,30 @@ func (gb *GameBoy) CPL(ins []uint8) {
 	gb.regs[PC] += uint16(len(ins))
 }
 
+// SCF
+func (gb *GameBoy) SCF(ins []uint8) {
+	gb.modifyFlag(C_FLAG, SET)
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// CCF
+func (gb *GameBoy) CCF(ins []uint8) {
+	gb.modifyFlag(C_FLAG, CLEAR)
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// DI
+func (gb *GameBoy) DI(ins []uint8) {
+	gb.interruptEnabled = false
+	gb.regs[PC] += uint16(len(ins))
+}
+
+// EI
+func (gb *GameBoy) EI(ins []uint8) {
+	gb.interruptEnabled = true
+	gb.regs[PC] += uint16(len(ins))
+}
+
 // NOP 1B
 func (gb *GameBoy) NOP(ins []uint8) {
 	gb.regs[PC] += uint16(len(ins))
