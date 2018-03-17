@@ -151,3 +151,11 @@ type GBCartridge interface {
 	writeROM(addr uint16, data uint8)
 	writeRAM(addr uint16, data uint8)
 }
+
+func (m *GBMem) readN(address, n uint16) []uint8 {
+	var bytes []uint8
+	for i := uint16(0); i < n; i++ {
+		bytes = append(bytes, m.read(address+i))
+	}
+	return bytes
+}
