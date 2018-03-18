@@ -129,8 +129,10 @@ func (g *GameBoy) Step() {
 				g.CPL(g.mainMemory.readN(pc, 1))
 				/* CPL */
 			case 0x30:
+				g.SCF(g.mainMemory.readN(pc, 1))
 				/* SCF */
 			case 0x38:
+				g.CCF(g.mainMemory.readN(pc, 1))
 				/* CCF */
 			}
 		}
@@ -156,6 +158,74 @@ func (g *GameBoy) Step() {
 		}
 	case 0x80:
 		/* assorted ALU instructions on A and register/memory location */
+		switch opCode & 0x38 {
+		case 0x00:
+			// most ADD instructions
+			switch opCode & 0x07 {
+			case 0x06:
+				g.ADD_a_hl(g.mainMemory.readN(pc, 1))
+				// add A, [HL]
+			default:
+				// add A, r
+				g.ADD_a_r(g.mainMemory.readN(pc, 1))
+			}
+		case 0x08:
+			// most ADC instructions
+			switch opCode & 0x07 {
+			case 0x06:
+				// adc A, [HL]
+				g.ADC_a_hl(g.mainMemory.readN(pc, 1))
+			default:
+				g.ADC_a_r(g.mainMemory.readN(pc, 1))
+			}
+		case 0x10:
+			// SUB instructions
+			switch opCode & 0x07 {
+			case 0x06:
+				g.SUB_a_hl(g.mainMemory.readN(pc, 1))
+			default:
+				g.SUB_a_r(g.mainMemory.readN(pc, 1))
+			}
+		case 0x18:
+			// SBC instructions
+			switch opCode & 0x07 {
+			case 0x06:
+				g.SBC_a_hl(g.mainMemory.readN(pc, 1))
+			default:
+				g.SUB_a_r(g.mainMemory.readN(pc, 1))
+			}
+		case 0x20:
+			// AND instructions
+			switch opCode & 0x07 {
+			case 0x06:
+				g.AND_a_hl(g.mainMemory.readN(pc, 1))
+			default:
+				g.AND_a_r(g.mainMemory.readN(pc, 1))
+			}
+		case 0x28:
+			// XOR instructions
+			switch opCode & 0x07 {
+			case 0x06:
+				g.XOR_a_hl(g.mainMemory.readN(pc, 1))
+			default:
+				g.XOR_a_r(g.mainMemory.readN(pc, 1))
+			}
+		case 0x30:
+			// OR instructions
+			switch opCode & 0x07 {
+			case 0x06:
+				g.OR_a_hl(g.mainMemory.readN(pc, 1))
+			default:
+				g.OR_a_r(g.mainMemory.readN(pc, 1))
+			}
+		case 0x38:
+			switch opCode & 0x07 {
+			case 0x06:
+				g.CP_a_hl(g.mainMemory.readN(pc, 1))
+			default:
+				g.CP_a_r(g.mainMemory.readN(pc, 1))
+			}
+		}
 	case 0xc0:
 		switch opCode & 0x07 {
 		case 0x00:
