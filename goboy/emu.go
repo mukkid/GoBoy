@@ -305,19 +305,92 @@ func (g *GameBoy) Step() {
 				/* jp nn */
 			case 0x08:
 				/* 0xcb prefix */
-				prefix := opCode
 				opCode = g.mainMemory.read(pc + 1)
 				switch opCode & 0xc0 {
 				case 0x00:
 					/* assorted rotate & shift operations on register or memory */
+					switch opCode & 0x38 {
+					case 0x00:
+						switch opCode & 0x07 {
+						case 0x06:
+							g.RLC_hl(g.mainMemory.readN(pc, 2))
+						default:
+							g.RLC_r(g.mainMemory.readN(pc, 2))
+						}
+					case 0x08:
+						switch opCode & 0x07 {
+						case 0x06:
+							g.RRC_hl(g.mainMemory.readN(pc, 2))
+						default:
+							g.RRC_r(g.mainMemory.readN(pc, 2))
+						}
+					case 0x10:
+						switch opCode & 0x07 {
+						case 0x06:
+							g.RL_hl(g.mainMemory.readN(pc, 2))
+						default:
+							g.RL_r(g.mainMemory.readN(pc, 2))
+						}
+					case 0x18:
+						switch opCode & 0x07 {
+						case 0x06:
+							g.RR_hl(g.mainMemory.readN(pc, 2))
+						default:
+							g.RR_r(g.mainMemory.readN(pc, 2))
+						}
+					case 0x20:
+						switch opCode & 0x07 {
+						case 0x06:
+							g.SLA_hl(g.mainMemory.readN(pc, 2))
+						default:
+							g.SLA_r(g.mainMemory.readN(pc, 2))
+						}
+					case 0x28:
+						switch opCode & 0x07 {
+						case 0x06:
+							g.SRA_hl(g.mainMemory.readN(pc, 2))
+						default:
+							g.SRA_r(g.mainMemory.readN(pc, 2))
+						}
+					case 0x30:
+						switch opCode & 0x07 {
+						case 0x06:
+							g.SWAP_hl(g.mainMemory.readN(pc, 2))
+						default:
+							g.SWAP_r(g.mainMemory.readN(pc, 2))
+						}
+					case 0x38:
+						switch opCode & 0x07 {
+						case 0x06:
+							g.SRL_hl(g.mainMemory.readN(pc, 2))
+						default:
+							g.SRL_r(g.mainMemory.readN(pc, 2))
+						}
+					}
 				case 0x40:
 					/* bit b, r8 */
-					instruction := []uint8{prefix, opCode}
-					g.BIT_b_r(instruction)
+					switch opCode & 0x07 {
+					case 0x06:
+						g.BIT_b_hl(g.mainMemory.readN(pc, 2))
+					default:
+						g.BIT_b_r(g.mainMemory.readN(pc, 2))
+					}
 				case 0x80:
 					/* res b, r8 */
+					switch opCode & 0x07 {
+					case 0x06:
+						g.RES_b_hl(g.mainMemory.readN(pc, 2))
+					default:
+						g.RES_b_r(g.mainMemory.readN(pc, 2))
+					}
 				case 0xc0:
 					/* set b, r8 */
+					switch opCode & 0x07 {
+					case 0x06:
+						g.SET_b_hl(g.mainMemory.readN(pc, 2))
+					default:
+						g.SET_b_r(g.mainMemory.readN(pc, 2))
+					}
 				}
 			case 0x10:
 				/* Illegal */
@@ -328,8 +401,10 @@ func (g *GameBoy) Step() {
 			case 0x28:
 				/* Illegal */
 			case 0x30:
+				g.DI(g.mainMemory.readN(pc, 1))
 				/* di */
 			case 0x38:
+				g.EI(g.mainMemory.readN(pc, 1))
 				/* ei */
 			}
 		case 0x04:
@@ -366,7 +441,24 @@ func (g *GameBoy) Step() {
 				}
 			}
 		case 0x06:
-			/* assorted ALU instructions on A and immediate operand */
+			switch opCode & 0x38 {
+			case 0x00:
+				g.ADD_a_n(g.mainMemory.readN(pc, 2))
+			case 0x08:
+				g.ADC_a_n(g.mainMemory.readN(pc, 2))
+			case 0x10:
+				g.SUB_a_n(g.mainMemory.readN(pc, 2))
+			case 0x18:
+				g.SBC_a_n(g.mainMemory.readN(pc, 2))
+			case 0x20:
+				g.AND_a_n(g.mainMemory.readN(pc, 2))
+			case 0x28:
+				g.XOR_a_n(g.mainMemory.readN(pc, 2))
+			case 0x30:
+				g.OR_a_n(g.mainMemory.readN(pc, 2))
+			case 0x38:
+				g.CP_a_n(g.mainMemory.readN(pc, 2))
+			}
 		case 0x07:
 			g.RST(g.mainMemory.readN(pc, 1))
 			/* rst p */
