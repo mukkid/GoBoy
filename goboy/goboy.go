@@ -1,11 +1,15 @@
 package main
 
+import "image"
+
 //Frances was here!
 
 type GameBoy struct {
-	mainMemory *GBMem
-	*Register
+	rom              *GBROM // the ROM object
+	mainMemory       *GBMem // GB main memory
+	*Register               // register state
 	interruptEnabled bool
+	image            *image.RGBA // image to be displayed
 }
 
 type Reg8ID int

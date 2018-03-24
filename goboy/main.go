@@ -28,11 +28,7 @@ var keyNames = map[ebiten.Key]string{
 }
 
 // global emulation state
-var (
-	GbRom     *GBROM
-	GbRam     *GBMem
-	GbBGImage *image.RGBA
-)
+var Gb *GameBoy
 
 // getKeys polls for keys defined in keyNames
 func getKeys() []string {
@@ -47,7 +43,7 @@ func getKeys() []string {
 
 // update is the main drawing function
 func update(screen *ebiten.Image) error {
-	drawBackground(GbBGImage, GbRam)
+	drawBackground(Gb.image, Gb.mainMemory)
 
 	pressed := getKeys()
 
@@ -58,24 +54,31 @@ func update(screen *ebiten.Image) error {
 	str := fmt.Sprintf("FPS: %f, Keys: %v", ebiten.CurrentFPS(), pressed)
 	ebitenutil.DebugPrint(screen, str)
 
+	// TODO: Main emulation step, this should be rate limited.
+	//if Gb != nil {
+	//	Gb.Step()
+	//}
+
 	return nil
 }
 
 func main() {
-
-	// init global vars
-	GbRom = &GBROM{}
-	GbRam = &GBMem{}
+	// init gameboy
+	Gb = &GameBoy{
+		Register:         &Register{},
+		rom:              &GBROM{},
+		mainMemory:       &GBMem{},
+		interruptEnabled: true,
+		image:            image.NewRGBA(image.Rect(0, 0, screenWidth, screenHeight)),
+	}
 
 	// load rom from file
 	rom_path := flag.String("rom", "", "rom image to load")
 	if *rom_path != "" {
-		GbRom.loadROMFromFile(*rom_path)
+		Gb.rom.loadROMFromFile(*rom_path)
 	}
 
-	// allocate image buffer
-	GbBGImage = image.NewRGBA(image.Rect(0, 0, screenWidth, screenHeight))
-
+	// setup update loop
 	if err := ebiten.Run(update, screenWidth, screenHeight, 2, "GoBoy"); err != nil {
 		log.Fatal(err)
 	}
