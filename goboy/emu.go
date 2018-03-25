@@ -6,9 +6,9 @@ func (g *GameBoy) Step() {
 	/* 3 is the max length of an instruction (I think) */
 	pc := g.regs[PC]
 	opCode := g.mainMemory.read(pc)
-    fmt.Printf("PC: %x\n", pc)
-    fmt.Printf("OP: %x\n", opCode)
-    println()
+	fmt.Printf("PC: %x\n", pc)
+	fmt.Printf("OP: %x\n", opCode)
+	println()
 
 	/* Switch on bits 6-7 */
 	switch opCode & 0xc0 {
