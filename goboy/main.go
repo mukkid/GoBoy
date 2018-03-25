@@ -56,9 +56,10 @@ func update(screen *ebiten.Image) error {
 	ebitenutil.DebugPrint(screen, str)
 
 	// TODO: Main emulation step, this should be rate limited.
-	//if Gb != nil {
-	//	Gb.Step()
-	//}
+	if Gb != nil {
+		Gb.Step()
+        time.Sleep(time.Microsecond)
+	}
 
 	return nil
 }
@@ -81,11 +82,6 @@ func main() {
 	}
 	fmt.Println(Gb.rom)
 	fmt.Println(Gb.regs)
-
-	for true {
-		Gb.Step()
-		time.Sleep(10)
-	}
 
 	// setup update loop
 	if err := ebiten.Run(update, screenWidth, screenHeight, 2, "GoBoy"); err != nil {
