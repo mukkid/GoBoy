@@ -146,6 +146,7 @@ type GBCartridge interface {
 	 * RAM  - [0xa000, 0xc000)
 	 */
 	loadROM(data []uint8) error
+	loadROMFromFile(data string) error
 	readROM(addr uint16) uint8
 	readRAM(addr uint16) uint8
 	writeROM(addr uint16, data uint8)

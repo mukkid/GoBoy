@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"log"
+    "time"
 
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
@@ -67,16 +68,24 @@ func main() {
 	Gb = &GameBoy{
 		Register:         &Register{},
 		rom:              &GBROM{},
-		mainMemory:       &GBMem{},
+        mainMemory:       &GBMem{cartridge: &GBROM{}},
 		interruptEnabled: true,
 		image:            image.NewRGBA(image.Rect(0, 0, screenWidth, screenHeight)),
 	}
 
 	// load rom from file
 	rom_path := flag.String("rom", "", "rom image to load")
+    flag.Parse()
 	if *rom_path != "" {
-		Gb.rom.loadROMFromFile(*rom_path)
+		Gb.mainMemory.cartridge.loadROMFromFile(*rom_path)
 	}
+    fmt.Println(Gb.rom)
+    fmt.Println(Gb.regs)
+
+    for true {
+        Gb.Step()
+        time.Sleep(10)
+    }
 
 	// setup update loop
 	if err := ebiten.Run(update, screenWidth, screenHeight, 2, "GoBoy"); err != nil {
