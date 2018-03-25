@@ -58,7 +58,7 @@ func update(screen *ebiten.Image) error {
 	// TODO: Main emulation step, this should be rate limited.
 	if Gb != nil {
 		Gb.Step()
-        time.Sleep(time.Microsecond)
+		time.Sleep(time.Microsecond)
 	}
 
 	return nil
