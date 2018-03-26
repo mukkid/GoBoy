@@ -12,7 +12,6 @@ func (g *GameBoy) Step() {
 	fmt.Printf("BC: 0x%04x\n", g.regs[0])
 	fmt.Printf("DE: 0x%04x\n", g.regs[1])
 	fmt.Printf("HL: 0x%04x\n", g.regs[2])
-
 	println()
 
 	/* Switch on bits 6-7 */

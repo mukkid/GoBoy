@@ -68,7 +68,6 @@ func main() {
 	// init gameboy
 	Gb = &GameBoy{
 		Register:         &Register{},
-		rom:              &GBROM{},
 		mainMemory:       &GBMem{cartridge: &GBROM{}},
 		interruptEnabled: true,
 		image:            image.NewRGBA(image.Rect(0, 0, screenWidth, screenHeight)),
@@ -80,8 +79,6 @@ func main() {
 	if *rom_path != "" {
 		Gb.mainMemory.cartridge.loadROMFromFile(*rom_path)
 	}
-	fmt.Println(Gb.rom)
-	fmt.Println(Gb.regs)
 
 	// setup update loop
 	if err := ebiten.Run(update, screenWidth, screenHeight, 2, "GoBoy"); err != nil {
