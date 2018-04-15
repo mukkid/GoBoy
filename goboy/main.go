@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"image"
 	"log"
-    "time"
+	"os"
 
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
@@ -55,10 +55,11 @@ func update(screen *ebiten.Image) error {
 	str := fmt.Sprintf("FPS: %f, Keys: %v", ebiten.CurrentFPS(), pressed)
 	ebitenutil.DebugPrint(screen, str)
 
-	// TODO: Main emulation step, this should be rate limited.
-	//if Gb != nil {
-	//	Gb.Step()
-	//}
+	// VBLANK hack to get past hang. In the future, VBLANK needs to be implemented properly
+	Gb.mainMemory.ioregs[0x44] += 1
+	if Gb.mainMemory.ioregs[0x44] > 0x99 {
+		Gb.mainMemory.ioregs[0x44] = 0
+	}
 
 	return nil
 }
@@ -67,25 +68,41 @@ func main() {
 	// init gameboy
 	Gb = &GameBoy{
 		Register:         &Register{},
-		rom:              &GBROM{},
-        mainMemory:       &GBMem{cartridge: &GBROM{}},
+		mainMemory:       &GBMem{cartridge: &GBROM{}},
 		interruptEnabled: true,
 		image:            image.NewRGBA(image.Rect(0, 0, screenWidth, screenHeight)),
 	}
 
 	// load rom from file
 	rom_path := flag.String("rom", "", "rom image to load")
-    flag.Parse()
+	flag.Parse()
 	if *rom_path != "" {
 		Gb.mainMemory.cartridge.loadROMFromFile(*rom_path)
 	}
     fmt.Println(Gb.rom)
     fmt.Println(Gb.regs)
 
-    for true {
-        Gb.Step()
-        time.Sleep(10)
-    }
+	go func() {
+		for true {
+			Gb.Step()
+			/* Tileset 1 breakpoint and dump */
+			   if Gb.regs[PC] == 0x282a {
+			       for i:=0; i<79; i++ {
+			           for j:=0; j<8; j++ {
+			               fmt.Printf("%08b\n", Gb.mainMemory.read(uint16(0x8000 + 8*i + j)))
+			           }
+			       }
+                   for _, y := range tileToPixel(2, Gb.mainMemory){
+                       for _, x := range y {
+                           fmt.Printf("%02x ", x.R)
+                       }
+                       println()
+                   }
+			       os.Exit(1)
+			   }
+			
+		}
+	}()
 
 	// setup update loop
 	if err := ebiten.Run(update, screenWidth, screenHeight, 2, "GoBoy"); err != nil {

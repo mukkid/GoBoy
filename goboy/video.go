@@ -32,6 +32,10 @@ func selectSemiNibble(input uint8, index uint8) uint8 {
 	return uint8(input>>uint8(index*2)) & 0x03
 }
 
+func compositePixel(lsb, hsb, index uint8) uint8 {
+    return (lsb >> index) & 0x1 | (hsb >> index) & 0x1 << 1
+}
+
 // tileToPixel returns an 8x8 array of RGBA pixel values. It inputs a tile index.
 // This is then converted to the raw pointer to the tile data which is a set of
 // 8 16-bit unsigned integers. From here it iterates through each 2-bit pixel
@@ -40,12 +44,19 @@ func tileToPixel(tileIndex uint8, mem *GBMem) [TileHeight][TileWidth]color.RGBA 
 	var pixels [TileHeight][TileWidth]color.RGBA
 	for y := 0; y < TileHeight; y++ {
 		var line [TileWidth]color.RGBA
-		for x := 0; x < TileWidth/4; x++ {
+        lsb := mem.vram[int(tileIndex) * 16 + 2*y]
+        hsb := mem.vram[int(tileIndex) * 16 + 2*y+1]
+
+
+		for x := 0; x < TileWidth; x++ {
+            /*
 			tile := mem.vram[x+(y*TileWidth/4)]
 			line[x*4+0] = paletteMap[selectSemiNibble(tile, 0)]
 			line[x*4+1] = paletteMap[selectSemiNibble(tile, 1)]
 			line[x*4+2] = paletteMap[selectSemiNibble(tile, 2)]
 			line[x*4+3] = paletteMap[selectSemiNibble(tile, 3)]
+            */
+            line[TileWidth - 1 - x] = paletteMap[compositePixel(lsb, hsb, uint8(x))]
 		}
 		pixels[y] = line
 	}
