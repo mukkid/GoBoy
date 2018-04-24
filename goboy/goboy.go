@@ -5,6 +5,7 @@ package main
 type GameBoy struct {
 	mainMemory *GBMem
 	*Register
+	interruptEnabled bool
 }
 
 type Reg8ID int
