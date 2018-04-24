@@ -1,16 +1,18 @@
+SRCS = goboy gobjdump
+
 all: build
 
 test: build
 	cd goboy && go $@ -v -cover -coverprofile=count.out
 
-build: deps
-	cd goboy && go $@
-	cd gobjdump && go $@
+build: $(SRCS)
+
+$(SRCS): deps 
+	cd $@ && go build
 
 fmt:
-	pushd src/goboy && go fmt && popd
-	pushd src/gobjdump && go fmt && popd
-	pushd src/gobjdump/main && go fmt && popd
+	pushd goboy && go fmt && popd
+	pushd gobjdump && go fmt && popd
 
 .PHONY: clean
 clean:

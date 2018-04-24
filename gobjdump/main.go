@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/pborman/getopt/v2"
-	"gobjdump"
+	"github.com/srsbusiness/gobjdump"
 	"os"
 )
 

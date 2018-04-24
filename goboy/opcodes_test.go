@@ -615,17 +615,17 @@ func TestCP_a_r(t *testing.T) {
 	gb := initGameboy()
 	gb.set8Reg(A, 0x05)
 	gb.set8Reg(B, 0x02)
-	gb.CP_a_r([]uint8{0xb8})                   // CP B
+	gb.CP_a_r([]uint8{0xb8})                    // CP B
 	assert.Equal(t, gb.get8Reg(F), uint8(0x60)) // H_FLAG and N_FLAG is set
 
 	gb.set8Reg(A, 0x02)
 	gb.set8Reg(B, 0x05)
-	gb.CP_a_r([]uint8{0xb8})                   // CP B
+	gb.CP_a_r([]uint8{0xb8})                    // CP B
 	assert.Equal(t, gb.get8Reg(F), uint8(0x50)) // C_FLAG and N_FLAG is set
 
 	gb.set8Reg(A, 0x03)
 	gb.set8Reg(B, 0x03)
-	gb.CP_a_r([]uint8{0xb8})                   // CP B
+	gb.CP_a_r([]uint8{0xb8})                    // CP B
 	assert.Equal(t, gb.get8Reg(F), uint8(0xc0)) // N_FLAG and Z_FLAG is set
 }
 
@@ -633,17 +633,17 @@ func TestCP_a_n(t *testing.T) {
 	gb := initGameboy()
 	gb.set8Reg(A, 0x05)
 	gb.set8Reg(B, 0x02)
-	gb.CP_a_n([]uint8{0xfe, 0x02})             // CP 0x02
+	gb.CP_a_n([]uint8{0xfe, 0x02})              // CP 0x02
 	assert.Equal(t, gb.get8Reg(F), uint8(0x60)) // H_FLAG and N_FLAG is set
 
 	gb.set8Reg(A, 0x02)
 	gb.set8Reg(B, 0x05)
-	gb.CP_a_n([]uint8{0xfe, 0x05})             // CP 0x05
+	gb.CP_a_n([]uint8{0xfe, 0x05})              // CP 0x05
 	assert.Equal(t, gb.get8Reg(F), uint8(0x50)) // C_FLAG and N_FLAG is set
 
 	gb.set8Reg(A, 0x03)
 	gb.set8Reg(B, 0x03)
-	gb.CP_a_n([]uint8{0xfe, 0x03})             // CP 0x03
+	gb.CP_a_n([]uint8{0xfe, 0x03})              // CP 0x03
 	assert.Equal(t, gb.get8Reg(F), uint8(0xc0)) // N_FLAG and Z_FLAG is set
 }
 
@@ -652,19 +652,19 @@ func TestCP_a_hl(t *testing.T) {
 	gb.set8Reg(A, 0x05)
 	gb.set16Reg(HL, 0xff85)
 	gb.mainMemory.write(0xff85, 0x02)
-	gb.CP_a_hl([]uint8{0xbe})                  // CP (HL)
+	gb.CP_a_hl([]uint8{0xbe})                   // CP (HL)
 	assert.Equal(t, gb.get8Reg(F), uint8(0x60)) // H_FLAG and N_FLAG is set
 
 	gb.set8Reg(A, 0x02)
 	gb.set16Reg(HL, 0xff85)
 	gb.mainMemory.write(0xff85, 0x05)
-	gb.CP_a_hl([]uint8{0xbe})                  // CP (HL)
+	gb.CP_a_hl([]uint8{0xbe})                   // CP (HL)
 	assert.Equal(t, gb.get8Reg(F), uint8(0x50)) // C_FLAG and N_FLAG is set
 
 	gb.set8Reg(A, 0x03)
 	gb.set16Reg(HL, 0xff85)
 	gb.mainMemory.write(0xff85, 0x03)
-	gb.CP_a_hl([]uint8{0xbe})                  // CP (HL)
+	gb.CP_a_hl([]uint8{0xbe})                   // CP (HL)
 	assert.Equal(t, gb.get8Reg(F), uint8(0xc0)) // Z_FLAG and N_FLAG is set
 }
 
