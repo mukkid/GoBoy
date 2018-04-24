@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"log"
+	//"os"
 
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
@@ -28,11 +29,7 @@ var keyNames = map[ebiten.Key]string{
 }
 
 // global emulation state
-var (
-	GbRom     *GBROM
-	GbRam     *GBMem
-	GbBGImage *image.RGBA
-)
+var Gb *GameBoy
 
 // getKeys polls for keys defined in keyNames
 func getKeys() []string {
@@ -47,7 +44,7 @@ func getKeys() []string {
 
 // update is the main drawing function
 func update(screen *ebiten.Image) error {
-	drawBackground(GbBGImage, GbRam)
+	drawBackground(Gb.image, Gb.mainMemory)
 
 	pressed := getKeys()
 
@@ -58,24 +55,48 @@ func update(screen *ebiten.Image) error {
 	str := fmt.Sprintf("FPS: %f, Keys: %v", ebiten.CurrentFPS(), pressed)
 	ebitenutil.DebugPrint(screen, str)
 
+	// VBLANK hack to get past hang. In the future, VBLANK needs to be implemented properly
+	Gb.mainMemory.ioregs[0x44] += 1
+	if Gb.mainMemory.ioregs[0x44] > 0x99 {
+		Gb.mainMemory.ioregs[0x44] = 0
+	}
+
 	return nil
 }
 
 func main() {
-
-	// init global vars
-	GbRom = &GBROM{}
-	GbRam = &GBMem{}
+	// init gameboy
+	Gb = &GameBoy{
+		Register:         &Register{},
+		mainMemory:       &GBMem{cartridge: &GBROM{}},
+		interruptEnabled: true,
+		image:            image.NewRGBA(image.Rect(0, 0, screenWidth, screenHeight)),
+	}
 
 	// load rom from file
 	rom_path := flag.String("rom", "", "rom image to load")
+	flag.Parse()
 	if *rom_path != "" {
-		GbRom.loadROMFromFile(*rom_path)
+		Gb.mainMemory.cartridge.loadROMFromFile(*rom_path)
 	}
 
-	// allocate image buffer
-	GbBGImage = image.NewRGBA(image.Rect(0, 0, screenWidth, screenHeight))
+	go func() {
+		for true {
+			Gb.Step()
+			/* Tileset 1 breakpoint and dump
+			   if Gb.regs[PC] == 0x282a {
+			       for i:=0; i<79; i++ {
+			           for j:=0; j<8; j++ {
+			               fmt.Printf("%08b\n", Gb.mainMemory.read(uint16(0x8000 + 8*i + j)))
+			           }
+			       }
+			       os.Exit(1)
+			   }
+			*/
+		}
+	}()
 
+	// setup update loop
 	if err := ebiten.Run(update, screenWidth, screenHeight, 2, "GoBoy"); err != nil {
 		log.Fatal(err)
 	}

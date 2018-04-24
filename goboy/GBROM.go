@@ -1,7 +1,7 @@
 package main
 
 import (
-	"os"
+	"io/ioutil"
 )
 
 func min(a, b int) int {
@@ -53,11 +53,12 @@ func (r *GBROM) loadROM(data []uint8) error {
 }
 
 func (r *GBROM) loadROMFromFile(fname string) error {
-	f, err := os.Open(fname)
+	data, err := ioutil.ReadFile(fname)
 	if err != nil {
+		println(err)
 		return err
 	}
-	_, err = f.Read(r.rom[:])
+	copy(r.rom[:], data)
 	return err
 }
 
