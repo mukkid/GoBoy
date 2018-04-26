@@ -48,13 +48,6 @@ func tileToPixel(tileIndex uint8, mem *GBMem) [TileHeight][TileWidth]color.RGBA 
 		hsb := mem.vram[int(tileIndex)*16+2*y+1]
 
 		for x := 0; x < TileWidth; x++ {
-			/*
-				tile := mem.vram[x+(y*TileWidth/4)]
-				line[x*4+0] = paletteMap[selectSemiNibble(tile, 0)]
-				line[x*4+1] = paletteMap[selectSemiNibble(tile, 1)]
-				line[x*4+2] = paletteMap[selectSemiNibble(tile, 2)]
-				line[x*4+3] = paletteMap[selectSemiNibble(tile, 3)]
-			*/
 			line[TileWidth-1-x] = paletteMap[compositePixel(lsb, hsb, uint8(x))]
 		}
 		pixels[y] = line
