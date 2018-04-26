@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"image"
 	"log"
-	//"os"
+	"os"
 
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
@@ -79,20 +79,28 @@ func main() {
 	if *rom_path != "" {
 		Gb.mainMemory.cartridge.loadROMFromFile(*rom_path)
 	}
+	fmt.Println(Gb.rom)
+	fmt.Println(Gb.regs)
 
 	go func() {
 		for true {
 			Gb.Step()
-			/* Tileset 1 breakpoint and dump
-			   if Gb.regs[PC] == 0x282a {
-			       for i:=0; i<79; i++ {
-			           for j:=0; j<8; j++ {
-			               fmt.Printf("%08b\n", Gb.mainMemory.read(uint16(0x8000 + 8*i + j)))
-			           }
-			       }
-			       os.Exit(1)
-			   }
-			*/
+			/* Tileset 1 breakpoint and dump */
+			if Gb.regs[PC] == 0x282a {
+				for i := 0; i < 79; i++ {
+					for j := 0; j < 8; j++ {
+						fmt.Printf("%08b\n", Gb.mainMemory.read(uint16(0x8000+8*i+j)))
+					}
+				}
+				for _, y := range tileToPixel(2, Gb.mainMemory) {
+					for _, x := range y {
+						fmt.Printf("%02x ", x.R)
+					}
+					println()
+				}
+				os.Exit(1)
+			}
+
 		}
 	}()
 
