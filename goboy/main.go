@@ -77,6 +77,7 @@ func main() {
 	fmt.Println(Gb.regs)
 
 	for true {
+		Gb.handleInterrupts()
 		Gb.Step()
 	}
 
