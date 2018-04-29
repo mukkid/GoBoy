@@ -76,8 +76,8 @@ func main() {
 	fmt.Println(Gb.rom)
 	fmt.Println(Gb.regs)
 
-		for true {
-			Gb.Step()
+	for true {
+		Gb.Step()
 	}
 
 	// setup update loop

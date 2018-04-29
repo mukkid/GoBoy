@@ -474,3 +474,66 @@ func (g *GameBoy) Step() {
 		}
 	}
 }
+
+func (g *GameBoy) handleInterrupts() {
+	/*
+	 * Check global interrupt flag
+	 * Check interrupt requests
+	 * Check interrupt enable flags
+	 * Disable interrupts
+	 * Push PC to stack
+	 * Jump according to INT vector table
+	 * RETI
+	 */
+	if !g.interruptEnabled {
+		return
+	}
+	enabledField := g.mainMemory.read(0xffff)
+	requestedField := g.mainMemory.read(0xff0f)
+	enabled := enabledField & 0x1f
+	requested := (requestedField & -requestedField) & 0x1f
+	switch requested {
+	case 0x00:
+		// No interrupts requested
+	case 0x01:
+		// VBLANK requested
+		if enabled&0x01 == 0x01 {
+			g.interruptEnabled = false
+			requested &= ^0x01
+			requested &= 0x1f
+			// handle VBLANK
+		}
+	case 0x02:
+		// LCD STAT requested
+		if enabled&0x02 == 0x02 {
+			g.interruptEnabled = false
+			requested &= ^0x02
+			requested &= 0x1f
+			// handle LCD STAT
+		}
+	case 0x04:
+		// TIMER requested
+		if enabled&0x04 == 0x04 {
+			g.interruptEnabled = false
+			requested &= ^0x04
+			requested &= 0x1f
+			// handle TIMER
+		}
+	case 0x08:
+		// SERIAL requested
+		if enabled&0x08 == 0x08 {
+			g.interruptEnabled = false
+			requested &= ^0x08
+			requested &= 0x1f
+			// handle SERIAL
+		}
+	case 0x10:
+		// JOYPAD requested
+		if enabled&0x10 == 0x10 {
+			g.interruptEnabled = false
+			requested &= ^0x10
+			requested &= 0x1f
+			// handle JOYPAD
+		}
+	}
+}
