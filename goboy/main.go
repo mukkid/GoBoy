@@ -4,10 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"image"
-	"log"
+	"image/color"
 
-	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/ebitenutil"
+	"github.com/faiface/pixel"
+	"github.com/faiface/pixel/pixelgl"
 )
 
 // 256x256 is written to in total but only 160x144 is visible.
@@ -18,44 +18,39 @@ const (
 	visibleHeight = 144
 )
 
-var keyNames = map[ebiten.Key]string{
-	ebiten.KeyDown:    "Down",
-	ebiten.KeyLeft:    "Left",
-	ebiten.KeyRight:   "Right",
-	ebiten.KeyUp:      "Up",
-	ebiten.KeySpace:   "Space",
-	ebiten.KeyControl: "Ctrl",
-}
-
 // global emulation state
 var Gb *GameBoy
 
-// getKeys polls for keys defined in keyNames
-func getKeys() []string {
-	var pressed = []string{}
-	for key, name := range keyNames {
-		if ebiten.IsKeyPressed(key) {
-			pressed = append(pressed, name)
-		}
+func run() {
+	cfg := pixelgl.WindowConfig{
+		Title:  "GoBoy",
+		Bounds: pixel.R(0, 0, 160*3, 144*3),
+		VSync:  true,
 	}
-	return pressed
-}
-
-// update is the main drawing function
-func update(screen *ebiten.Image) error {
-	drawBackground(Gb.image, Gb.mainMemory)
-
-	pressed := getKeys()
-
-	if ebiten.IsRunningSlowly() {
-		return nil
+	win, err := pixelgl.NewWindow(cfg)
+	if err != nil {
+		panic(err)
 	}
 
-	str := fmt.Sprintf("FPS: %f, Keys: %v", ebiten.CurrentFPS(), pressed)
-	ebitenutil.DebugPrint(screen, str)
+	d := &pixel.PictureData{
+		Pix:    make([]color.RGBA, 144*160),
+		Stride: 160,
+		Rect:   pixel.R(0, 0, 160, 144),
+	}
 
-	// VBLANK hack to get past hang. In the future, VBLANK needs to be implemented properly
-	return nil
+	for i := 0; i < 144*10; i++ {
+		d.Pix[i] = color.RGBA{R: 0xff, G: 0x00, B: 0x00, A: 0xff}
+		d.Pix[144*160-i-1] = color.RGBA{R: 0xff, G: 0x00, B: 0x00, A: 0xff}
+	}
+	for !win.Closed() {
+		win.Clear(color.RGBA{R: 0x00, G: 0x00, B: 0x00, A: 0xff})
+		sprite := pixel.NewSprite(pixel.Picture(d), pixel.R(0, 0, 160, 144))
+		mat := pixel.IM.Scaled(pixel.ZV, 3)
+		mat = mat.Moved(win.Bounds().Center())
+		sprite.Draw(win, mat)
+
+		win.Update()
+	}
 }
 
 func main() {
@@ -76,13 +71,9 @@ func main() {
 	fmt.Println(Gb.rom)
 	fmt.Println(Gb.regs)
 
+	pixelgl.Run(run)
 	for true {
 		Gb.handleInterrupts()
 		Gb.Step()
-	}
-
-	// setup update loop
-	if err := ebiten.Run(update, screenWidth, screenHeight, 2, "GoBoy"); err != nil {
-		log.Fatal(err)
 	}
 }
