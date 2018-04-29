@@ -499,7 +499,7 @@ func (g *GameBoy) handleInterrupts() {
 		// VBLANK requested
 		if enabled&0x01 == 0x01 {
 			g.interruptEnabled = false
-			requested &= ^0x01
+			requested &= 0xfe
 			requested &= 0x1f
 			// handle VBLANK
 		}
@@ -507,7 +507,7 @@ func (g *GameBoy) handleInterrupts() {
 		// LCD STAT requested
 		if enabled&0x02 == 0x02 {
 			g.interruptEnabled = false
-			requested &= ^0x02
+			requested &= 0xfd
 			requested &= 0x1f
 			// handle LCD STAT
 		}
@@ -515,7 +515,7 @@ func (g *GameBoy) handleInterrupts() {
 		// TIMER requested
 		if enabled&0x04 == 0x04 {
 			g.interruptEnabled = false
-			requested &= ^0x04
+			requested &= 0xfb
 			requested &= 0x1f
 			// handle TIMER
 		}
@@ -523,7 +523,7 @@ func (g *GameBoy) handleInterrupts() {
 		// SERIAL requested
 		if enabled&0x08 == 0x08 {
 			g.interruptEnabled = false
-			requested &= ^0x08
+			requested &= 0xf7
 			requested &= 0x1f
 			// handle SERIAL
 		}
@@ -531,7 +531,7 @@ func (g *GameBoy) handleInterrupts() {
 		// JOYPAD requested
 		if enabled&0x10 == 0x10 {
 			g.interruptEnabled = false
-			requested &= ^0x10
+			requested &= 0xef
 			requested &= 0x1f
 			// handle JOYPAD
 		}
