@@ -2,14 +2,20 @@ dist: trusty
 language: go
 compiler: go
 before_script:
-script: make test
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+  - sleep 3
+script:
+  - make test
 addons:
   apt:
     packages:
-      - libglu1-mesa-dev
-      - libgles2-mesa-dev
-      - libxrandr-dev
-      - libxcursor-dev
-      - libxinerama-dev
-      - libxi-dev
       - libasound2-dev
+      - libglew-dev
+      - libgles2-mesa-dev
+      - libalut-dev
+      - libxcursor-dev
+      - libxi-dev
+      - libxinerama-dev
+      - libxrandr-dev
+      - libxxf86vm-dev

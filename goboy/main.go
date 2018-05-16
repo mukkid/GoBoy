@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"image"
 	"log"
-	"os"
 
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
@@ -44,7 +43,12 @@ func getKeys() []string {
 
 // update is the main drawing function
 func update(screen *ebiten.Image) error {
-	drawBackground(Gb.image, Gb.mainMemory)
+
+	// draw background
+	Gb.image = drawBackground(Gb.image, Gb.mainMemory)
+
+	// replace pixels on screen
+	screen.ReplacePixels(Gb.image.Pix)
 
 	pressed := getKeys()
 
@@ -82,25 +86,10 @@ func main() {
 	fmt.Println(Gb.rom)
 	fmt.Println(Gb.regs)
 
+	// step through pc
 	go func() {
-		for true {
+		for {
 			Gb.Step()
-			/* Tileset 1 breakpoint and dump */
-			if Gb.regs[PC] == 0x282a {
-				for i := 0; i < 79; i++ {
-					for j := 0; j < 8; j++ {
-						fmt.Printf("%08b\n", Gb.mainMemory.read(uint16(0x8000+8*i+j)))
-					}
-				}
-				for _, y := range tileToPixel(2, Gb.mainMemory) {
-					for _, x := range y {
-						fmt.Printf("%02x ", x.R)
-					}
-					println()
-				}
-				os.Exit(1)
-			}
-
 		}
 	}()
 
