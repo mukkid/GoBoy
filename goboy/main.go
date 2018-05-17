@@ -3,8 +3,7 @@ package main
 import (
 	"flag"
 	"image"
-	"image/color"
-	"time"
+	"log"
 
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
@@ -21,11 +20,30 @@ const (
 // global emulation state
 var Gb *GameBoy
 
-func run() {
-	cfg := pixelgl.WindowConfig{
-		Title:  "GoBoy",
-		Bounds: pixel.R(0, 0, 160*3, 144*3),
-		VSync:  true,
+// getKeys polls for keys defined in keyNames
+func getKeys() []string {
+	var pressed = []string{}
+	for key, name := range keyNames {
+		if ebiten.IsKeyPressed(key) {
+			pressed = append(pressed, name)
+		}
+	}
+	return pressed
+}
+
+// update is the main drawing function
+func update(screen *ebiten.Image) error {
+
+	// draw background
+	Gb.image = drawBackground(Gb.image, Gb.mainMemory)
+
+	// replace pixels on screen
+	screen.ReplacePixels(Gb.image.Pix)
+
+	pressed := getKeys()
+
+	if ebiten.IsRunningSlowly() {
+		return nil
 	}
 	win, err := pixelgl.NewWindow(cfg)
 	if err != nil {
@@ -47,16 +65,12 @@ func run() {
 		Gb.mainMemory.cartridge.loadROMFromFile(*rom_path)
 	}
 
-	d := &pixel.PictureData{
-		Pix:    make([]color.RGBA, 144*160),
-		Stride: 160,
-		Rect:   pixel.R(0, 0, 160, 144),
-	}
-
-	for i := 0; i < 144*10; i++ {
-		d.Pix[i] = color.RGBA{R: 0xff, G: 0x00, B: 0x00, A: 0xff}
-		d.Pix[144*160-i-1] = color.RGBA{R: 0xff, G: 0x00, B: 0x00, A: 0xff}
-	}
+	// step through pc
+	go func() {
+		for {
+			Gb.Step()
+		}
+	}()
 
 	clock := time.Now()
 	var tick time.Time
