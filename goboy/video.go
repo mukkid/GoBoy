@@ -59,7 +59,7 @@ func tileToPixel(tileIndex uint8, mem *GBMem) [TileHeight][TileWidth]color.RGBA 
 func drawTilePixels(image *image.RGBA, pixel [8][8]color.RGBA, xOffset int, yOffset int) *image.RGBA {
 	for x := 0; x < TileWidth; x++ {
 		for y := 0; y < TileHeight; y++ {
-			image.SetRGBA(xOffset*TileWidth+x, yOffset*TileHeight+y, pixel[x][y])
+			image.SetRGBA(xOffset*TileWidth+x, yOffset*TileHeight+y, pixel[y][x])
 		}
 	}
 	return image
