@@ -86,6 +86,9 @@ func main() {
 	fmt.Println(Gb.rom)
 	fmt.Println(Gb.regs)
 
+	// Initialize joypad values
+	Gb.mainMemory.ioregs[0] = 0xff;
+
 	// step through pc
 	go func() {
 		for {
