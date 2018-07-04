@@ -97,12 +97,10 @@ func main() {
 		}
 	}()
 
-    go Gb.incrementLY()
+	go Gb.incrementLY()
 
 	// setup update loop
-	go func() {
-        if err := ebiten.Run(update, screenWidth, screenHeight, 2, "GoBoy"); err != nil {
-		    log.Fatal(err)
-        }
-    }()
+	if err := ebiten.Run(update, screenWidth, screenHeight, 2, "GoBoy"); err != nil {
+		log.Fatal(err)
+	}
 }
