@@ -468,3 +468,46 @@ func (g *GameBoy) Step() {
 		}
 	}
 }
+
+func (g *GameBoy) handleInterrupt() {
+	if !g.interruptEnabled {
+		return
+	}
+	interrupts_enabled := g.mainMemory.read(0xffff)
+	interrupts_request := g.mainMemory.read(0xff0f)
+	interrupts := interrupts_enabled & interrupts_request
+	if interrupts > 0x00 {
+		bit := interrupts & -interrupts
+		switch bit {
+		case 0x01:
+			// VBLANK
+			g.interruptJumpHelper(0x0040)
+		case 0x02:
+			// LCD Stat
+			g.interruptJumpHelper(0x0048)
+		case 0x04:
+			// TIMER
+			g.interruptJumpHelper(0x0050)
+		case 0x08:
+			// SERIAL
+			g.interruptJumpHelper(0x0058)
+		case 0x10:
+			// JOYPAD
+			g.interruptJumpHelper(0x0060)
+		}
+		interrupts_request ^= bit
+		g.mainMemory.write(0xff0f, interrupts_request)
+	}
+}
+
+func (g *GameBoy) interruptJumpHelper(target uint16) {
+	g.interruptEnabled = false
+	val := g.get16Reg(PC)
+	lowVal := uint8(val)
+	highVal := uint8(val >> 8)
+	g.regs[SP] -= 1
+	g.mainMemory.write(g.get16Reg(SP), highVal)
+	g.regs[SP] -= 1
+	g.mainMemory.write(g.get16Reg(SP), lowVal)
+	g.regs[PC] = target
+}
