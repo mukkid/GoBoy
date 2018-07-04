@@ -3,6 +3,7 @@ package main
 import (
 	"image"
 	"image/color"
+    "time"
 )
 
 const (
@@ -80,4 +81,19 @@ func drawBackground(image *image.RGBA, mem *GBMem) *image.RGBA {
 		}
 	}
 	return image
+}
+
+func (gb *GameBoy) incrementLY() {
+    for {
+        /* TODO: eliminate magic numbers */
+        LY := gb.mainMemory.read(0xff44)
+        LY = (LY + 1) % 0x99
+        if LY >= 0x90 && LY <= 0x99 {
+            /* Set V-Blank bit in the Interrupt enable mask */
+            IE := gb.mainMemory.read(0xff0f)
+            IE |= 0x01
+            gb.mainMemory.write(0xff0f, IE)
+        }
+        time.Sleep(10 * time.Millisecond)
+    }
 }
