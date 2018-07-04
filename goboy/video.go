@@ -86,14 +86,20 @@ func drawBackground(image *image.RGBA, mem *GBMem) *image.RGBA {
 func (gb *GameBoy) incrementLY() {
 	for {
 		/* TODO: eliminate magic numbers */
-		LY := gb.mainMemory.read(0xff44)
+		LY := gb.mainMemory.ioregs[0x44]
 		LY = (LY + 1) % 0x99
-		if LY >= 0x90 && LY <= 0x99 {
+		if LY == 0x90 {
 			/* Set V-Blank bit in the Interrupt enable mask */
 			IE := gb.mainMemory.read(0xff0f)
 			IE |= 0x01
 			gb.mainMemory.write(0xff0f, IE)
+		} else if LY == 0x00 {
+			/* Clear V-Blank bit in the Interrupt enable mask */
+			IE := gb.mainMemory.read(0xff0f)
+			IE &= 0xfe
+			gb.mainMemory.write(0xff0f, IE)
 		}
+		gb.mainMemory.ioregs[0x44] = LY
 		time.Sleep(10 * time.Millisecond)
 	}
 }

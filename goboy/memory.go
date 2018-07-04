@@ -5,8 +5,9 @@ type GBMem struct {
 	wram [8 * 1024]uint8
 	vram [8 * 1024]uint8
 	/* HRAM: 0xff80 - 0xfffe */
-	hram   [127]uint8
-	ioregs [127]uint8
+	hram    [127]uint8
+	ioregs  [128]uint8
+	ie_flag uint8
 	/* ROM bank 0, nonswitchable - I believe this means this bank is static */
 	cartridge GBCartridge
 }
@@ -93,7 +94,7 @@ func (m *GBMem) read(addr uint16) uint8 {
 		return m.hram[addr-0xff80]
 	} else {
 		/* 0xffff - IE Register Interrupt enable flags */
-		return uint8(0x00)
+		return m.ie_flag
 	}
 }
 
@@ -132,6 +133,7 @@ func (m *GBMem) write(addr uint16, value uint8) {
 		m.hram[addr-0xff80] = value
 	} else {
 		/* 0xffff - IE Register Interrupt enable flags */
+		m.ie_flag = value
 	}
 }
 

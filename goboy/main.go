@@ -59,12 +59,6 @@ func update(screen *ebiten.Image) error {
 	str := fmt.Sprintf("FPS: %f, Keys: %v", ebiten.CurrentFPS(), pressed)
 	ebitenutil.DebugPrint(screen, str)
 
-	// VBLANK hack to get past hang. In the future, VBLANK needs to be implemented properly
-	Gb.mainMemory.ioregs[0x44] += 1
-	if Gb.mainMemory.ioregs[0x44] > 0x99 {
-		Gb.mainMemory.ioregs[0x44] = 0
-	}
-
 	return nil
 }
 
