@@ -468,3 +468,27 @@ func (g *GameBoy) Step() {
 		}
 	}
 }
+
+func (g *GameBoy) handleInterrupt() {
+	if !g.interruptEnabled {
+		return
+	}
+	interrupts_enabled := g.mainMemory.read(0xffff)
+	interrupts_request := g.mainMemory.read(0xff0f)
+	interrupts := interrupts_enabled & interrupts_request
+	for interrupts > 0x00 {
+		bit := interrupts & -interrupts
+		switch bit {
+		case 0x01:
+			// handle vblank
+		case 0x02:
+			// handle LCD stat
+		case 0x04:
+			// handle TIMER
+		case 0x08:
+			// handle SERIAL
+		case 0x10:
+			// handle JOYPAD
+		}
+	}
+}
