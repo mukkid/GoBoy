@@ -476,31 +476,27 @@ func (g *GameBoy) handleInterrupt() {
 	interrupts_enabled := g.mainMemory.read(0xffff)
 	interrupts_request := g.mainMemory.read(0xff0f)
 	interrupts := interrupts_enabled & interrupts_request
-	for interrupts > 0x00 {
+	if interrupts > 0x00 {
 		bit := interrupts & -interrupts
 		switch bit {
 		case 0x01:
 			// VBLANK
 			g.interruptJumpHelper(0x0040)
-			return
 		case 0x02:
 			// LCD Stat
 			g.interruptJumpHelper(0x0048)
-			return
 		case 0x04:
 			// TIMER
 			g.interruptJumpHelper(0x0050)
-			return
 		case 0x08:
 			// SERIAL
 			g.interruptJumpHelper(0x0058)
-			return
 		case 0x10:
 			// JOYPAD
 			g.interruptJumpHelper(0x0060)
-			return
 		}
-		interrupts ^= bit
+		interrupts_request ^= bit
+		g.mainMemory.write(0xff0f, interrupts_request)
 	}
 }
 
