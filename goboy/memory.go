@@ -7,6 +7,7 @@ type GBMem struct {
 	/* HRAM: 0xff80 - 0xfffe */
 	hram    [127]uint8
 	ioregs  [128]uint8
+    oam     [160]uint8
 	ie_flag uint8
 	/* ROM bank 0, nonswitchable - I believe this means this bank is static */
 	cartridge GBCartridge
@@ -82,7 +83,7 @@ func (m *GBMem) read(addr uint16) uint8 {
 		return m.wram[addr-0x2000-0xc000]
 	} else if addr >= 0xfe00 && addr < 0xfea0 {
 		/* OAM (Object Attribute Table) Sprite information table */
-		return uint8(0x00)
+        return m.oam[addr - 0xfe00]
 	} else if addr >= 0xfea0 && addr < 0xff00 {
 		/* Unused */
 		return uint8(0x00)
@@ -124,10 +125,12 @@ func (m *GBMem) write(addr uint16, value uint8) {
 		m.wram[addr-0x2000-0xc000] = value
 	} else if addr >= 0xfe00 && addr < 0xfea0 {
 		/* OAM (Object Attribute Table) Sprite information table */
+        m.oam[addr - 0xfe00] = value
 	} else if addr >= 0xfea0 && addr < 0xff00 {
 		/* Unused */
 	} else if addr >= 0xff00 && addr < 0xff80 {
-		/* I/O Registers I/O registers are mapped here */
+		/* I/O Registers are mapped here */
+        m.ioregs[addr - 0xff00] = value
 	} else if addr >= 0xff80 && addr < 0xffff {
 		/* HRAM Internal CPU RAM */
 		m.hram[addr-0xff80] = value

@@ -4,6 +4,7 @@ import (
 	"image"
 	"image/color"
 	"time"
+    "fmt"
 )
 
 const (
@@ -90,16 +91,17 @@ func (gb *GameBoy) incrementLY() {
 		LY = (LY + 1) % 0x99
 		if LY == 0x90 {
 			/* Set V-Blank bit in the Interrupt enable mask */
-			IE := gb.mainMemory.read(0xff0f)
+			IE := gb.mainMemory.ioregs[0x0f]
 			IE |= 0x01
-			gb.mainMemory.write(0xff0f, IE)
+			gb.mainMemory.ioregs[0x0f] = IE
 		} else if LY == 0x00 {
 			/* Clear V-Blank bit in the Interrupt enable mask */
-			IE := gb.mainMemory.read(0xff0f)
+			IE := gb.mainMemory.ioregs[0x0f]
 			IE &= 0xfe
-			gb.mainMemory.write(0xff0f, IE)
+			gb.mainMemory.ioregs[0x0f] = IE
 		}
 		gb.mainMemory.ioregs[0x44] = LY
+        fmt.Print("LY: %d\n", LY)
 		time.Sleep(10 * time.Millisecond)
 	}
 }
