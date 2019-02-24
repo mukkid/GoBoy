@@ -1,12 +1,9 @@
 package main
 
-import "fmt"
-
 func (g *GameBoy) Step() {
 	/* 3 is the max length of an instruction (I think) */
 	pc := g.regs[PC]
 	opCode := g.mainMemory.read(pc)
-	fmt.Printf("PC: 0x%04x OP: 0x%02x AF: 0x%04x BC: 0x%04x DE: 0x%04x HL: 0x%04x\n", pc, opCode, g.regs[5], g.regs[0], g.regs[1], g.regs[2])
 
 	/* Switch on bits 6-7 */
 	switch opCode & 0xc0 {

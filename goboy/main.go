@@ -4,10 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"image"
-	"log"
-
-	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/ebitenutil"
+    "os/signal"
+    "syscall"
 )
 
 // 256x256 is written to in total but only 160x144 is visible.
@@ -18,55 +16,8 @@ const (
 	visibleHeight = 144
 )
 
-var keyNames = map[ebiten.Key]string{
-	ebiten.KeyDown:    "Down",
-	ebiten.KeyLeft:    "Left",
-	ebiten.KeyRight:   "Right",
-	ebiten.KeyUp:      "Up",
-	ebiten.KeySpace:   "Space",
-	ebiten.KeyControl: "Ctrl",
-}
-
 // global emulation state
 var Gb *GameBoy
-
-// getKeys polls for keys defined in keyNames
-func getKeys() []string {
-	var pressed = []string{}
-	for key, name := range keyNames {
-		if ebiten.IsKeyPressed(key) {
-			pressed = append(pressed, name)
-		}
-	}
-	return pressed
-}
-
-// update is the main drawing function
-func update(screen *ebiten.Image) error {
-
-	// draw background
-	Gb.image = drawBackground(Gb.image, Gb.mainMemory)
-
-	// replace pixels on screen
-	screen.ReplacePixels(Gb.image.Pix)
-
-	pressed := getKeys()
-
-	if ebiten.IsRunningSlowly() {
-		return nil
-	}
-
-	str := fmt.Sprintf("FPS: %f, Keys: %v", ebiten.CurrentFPS(), pressed)
-	ebitenutil.DebugPrint(screen, str)
-
-	// VBLANK hack to get past hang. In the future, VBLANK needs to be implemented properly
-	Gb.mainMemory.ioregs[0x44] += 1
-	if Gb.mainMemory.ioregs[0x44] > 0x99 {
-		Gb.mainMemory.ioregs[0x44] = 0
-	}
-
-	return nil
-}
 
 func main() {
 	// init gameboy
@@ -77,28 +28,27 @@ func main() {
 		image:            image.NewRGBA(image.Rect(0, 0, screenWidth, screenHeight)),
 	}
 
+    d := Debugger {
+        gb: Gb,
+        breakpoints: make(map[uint16]struct{}),
+        paused: true,
+    }
+
 	// load rom from file
 	rom_path := flag.String("rom", "", "rom image to load")
 	flag.Parse()
 	if *rom_path != "" {
 		Gb.mainMemory.cartridge.loadROMFromFile(*rom_path)
+        fmt.Printf("Loaded %s\n", *rom_path)
 	}
-	fmt.Println(Gb.rom)
-	fmt.Println(Gb.regs)
 
 	// Initialize joypad values
 	Gb.mainMemory.ioregs[0] = 0xff
 
-	// step through pc
-	go func() {
-		for {
-			Gb.handleInterrupt()
-			Gb.Step()
-		}
-	}()
+    /* Initialize SIGINT handler */
+    debuggersSignal = append(debuggersSignal, &d)
+    go sigint_handler()
+    signal.Notify(sig_chan, syscall.SIGINT)
 
-	// setup update loop
-	if err := ebiten.Run(update, screenWidth, screenHeight, 2, "GoBoy"); err != nil {
-		log.Fatal(err)
-	}
+    debugLoop(&d)
 }
