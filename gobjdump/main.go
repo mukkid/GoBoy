@@ -3,8 +3,9 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"github.com/SrsBusiness/gobjdump"
 	"github.com/pborman/getopt/v2"
-	"github.com/srsbusiness/gobjdump"
+	"io/ioutil"
 	"os"
 )
 
@@ -16,22 +17,13 @@ func main_c(argv []string) int {
 		return 1
 	}
 
-	/* Open binary */
-	file, err := os.Open(argv[1])
+	binData, err := ioutil.ReadFile(argv[1])
+	fileLen := len(binData)
 	if err != nil {
 		fmt.Printf("%s\n", err.Error())
 		return 1
 	}
 
-	fstat, err := file.Stat()
-	if err != nil {
-		fmt.Printf("%s\n", err.Error())
-		return 1
-	}
-
-	fileLen := fstat.Size()
-	binData := make([]uint8, fileLen)
-	file.Read(binData)
 	reader := bytes.NewReader(binData)
 
 	if *raw {

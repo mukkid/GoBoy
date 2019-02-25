@@ -1,5 +1,7 @@
 package main
 
+import "bytes"
+
 type GBMem struct {
 	/* Work RAM at 0xc000 - 0xd000 */
 	wram [8 * 1024]uint8
@@ -152,6 +154,7 @@ type GBCartridge interface {
 	readRAM(addr uint16) uint8
 	writeROM(addr uint16, data uint8)
 	writeRAM(addr uint16, data uint8)
+	reader() *bytes.Reader
 }
 
 func (m *GBMem) readN(address, n uint16) []uint8 {

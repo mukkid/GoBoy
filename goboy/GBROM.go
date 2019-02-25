@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"io/ioutil"
 )
 
@@ -60,6 +61,10 @@ func (r *GBROM) loadROMFromFile(fname string) error {
 	}
 	copy(r.rom[:], data)
 	return err
+}
+
+func (r *GBROM) reader() *bytes.Reader {
+	return bytes.NewReader(r.rom[:])
 }
 
 func newGBROM() *GBROM {
