@@ -2,7 +2,8 @@ package main
 
 import "image"
 
-//Frances was here!
+//  Frances was here!
+//      Where is Frances?
 
 type GameBoy struct {
 	rom              *GBROM // the ROM object
