@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	. "github.com/SrsBusiness/gobjdump"
 	"image"
 	"os/signal"
 	"syscall"
@@ -29,14 +28,6 @@ func main() {
 		image:            image.NewRGBA(image.Rect(0, 0, screenWidth, screenHeight)),
 	}
 
-	/* Write initializer function */
-	d := Debugger{
-		gb:           Gb,
-		breakpoints:  make(map[uint16]struct{}),
-		paused:       true,
-		instructions: make(map[uint16]*GBInstruction),
-	}
-
 	// load rom from file
 	rom_path := flag.String("rom", "", "rom image to load")
 	flag.Parse()
@@ -48,11 +39,14 @@ func main() {
 	// Initialize joypad values
 	Gb.mainMemory.ioregs[0] = 0xff
 
+	/* Initialize PC to 0x100 */
+	Gb.set16Reg(PC, 0x100)
+
+	d := NewDebugger(Gb)
 	/* Initialize SIGINT handler */
-	debuggersSignal = append(debuggersSignal, &d)
+	debuggersSignal = append(debuggersSignal, d)
 	go sigint_handler()
 	signal.Notify(sig_chan, syscall.SIGINT)
 
-	d.disassembleROM()
-	debugLoop(&d)
+	debugLoop(d)
 }

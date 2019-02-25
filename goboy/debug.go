@@ -1,5 +1,6 @@
 package main
 
+import "bytes"
 import "fmt"
 import "strings"
 import "os"
@@ -14,24 +15,10 @@ type FunctionFrame struct {
 }
 
 type Debugger struct {
-	gb           *GameBoy
-	breakpoints  map[uint16]struct{} /* This is how sets work */
-	paused       bool
-	instructions map[uint16]*GBInstruction
-}
-
-func (d *Debugger) disassembleROM() {
-	r := d.gb.mainMemory.cartridge.reader()
-	var addr uint32 = 0
-	var prev *GBInstruction = nil
-	for gbInstruction, addr := DecodeInstruction(r, addr); gbInstruction != nil; gbInstruction, addr = DecodeInstruction(r, addr) {
-		if prev != nil {
-			prev.Next = gbInstruction
-			gbInstruction.Prev = prev
-		}
-		d.instructions[uint16(gbInstruction.Addr)] = gbInstruction
-		prev = gbInstruction
-	}
+	gb          *GameBoy
+	breakpoints map[uint16]struct{} /* This is how sets work */
+	paused      bool
+	ROMReader   *bytes.Reader
 }
 
 func isBreakpoint(m map[uint16]struct{}, breakpoint uint16) bool {
@@ -152,14 +139,11 @@ func (d *Debugger) printMemory(addr, numBytes uint16) {
 }
 
 func (d *Debugger) printInstructions(addr, numInstructions uint16) {
-	ins, isMember := d.instructions[addr]
-	if !isMember {
-		fmt.Printf("No instruction starts at 0x%04x\n", addr)
-	} else {
-		var i uint16
-		for i = 0; i < numInstructions && ins != nil; i, ins = i+1, ins.Next {
-			fmt.Printf("%s\n", ins.ToStr())
-		}
+	d.ROMReader.Seek(int64(addr), 0)
+	var i uint16 = 0
+	for gbInstruction, addr := DecodeInstruction(d.ROMReader, uint32(addr)); i < numInstructions && gbInstruction != nil; gbInstruction, addr = DecodeInstruction(d.ROMReader, uint32(addr)) {
+		fmt.Printf("%s\n", gbInstruction.ToStr())
+		i++
 	}
 }
 
@@ -243,6 +227,15 @@ func debugLoop(d *Debugger) {
 				}
 			}
 		}
+	}
+}
+
+func NewDebugger(gb *GameBoy) *Debugger {
+	return &Debugger{
+		gb:          gb,
+		breakpoints: make(map[uint16]struct{}),
+		paused:      true,
+		ROMReader:   Gb.mainMemory.cartridge.reader(),
 	}
 }
 
