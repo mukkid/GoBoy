@@ -1,6 +1,7 @@
 package main
 
 import "image"
+import "time"
 
 //  Frances was here!
 //      Where is Frances?
@@ -11,6 +12,7 @@ type GameBoy struct {
 	*Register               // register state
 	interruptEnabled bool
 	image            *image.RGBA // image to be displayed
+	gpuClock         *time.Ticker
 }
 
 type Reg8ID int

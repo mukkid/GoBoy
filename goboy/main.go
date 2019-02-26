@@ -6,6 +6,7 @@ import (
 	"image"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 // 256x256 is written to in total but only 160x144 is visible.
@@ -26,6 +27,7 @@ func main() {
 		mainMemory:       &GBMem{cartridge: &GBROM{}},
 		interruptEnabled: true,
 		image:            image.NewRGBA(image.Rect(0, 0, screenWidth, screenHeight)),
+		gpuClock:         time.NewTicker(108 * time.Microsecond),
 	}
 
 	// load rom from file
