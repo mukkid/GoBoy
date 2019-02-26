@@ -512,8 +512,8 @@ func (g *GameBoy) interruptJumpHelper(target uint16) {
 func (Gb *GameBoy) GPULoop() {
 	for _ = range Gb.gpuClock.C {
 		// NOTE: Check debugger pause flag here
-		LY := Gb.mainMemory.read(0xff44)
+		LY := Gb.mainMemory.ioregs[0x44]
 		LY = (LY + 1) % 0x9a // LY increments from 0 (0x00) to 153 (0x99) and then repeats
-		Gb.mainMemory.write(0xff44, LY)
+		Gb.mainMemory.ioregs[0x44] = LY
 	}
 }
