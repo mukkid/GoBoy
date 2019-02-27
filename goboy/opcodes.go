@@ -1507,10 +1507,12 @@ func (gb *GameBoy) JR_cc_e(ins []uint8) int {
 		cc == 0x03 && C == 0x01 {
 		jump := int8(ins[1])
 		gb.regs[PC] = uint16(int16(gb.regs[PC]) + int16(jump))
+		gb.regs[PC] += uint16(len(ins))
 		return 12
+	} else {
+		gb.regs[PC] += uint16(len(ins))
+		return 8
 	}
-	gb.regs[PC] += uint16(len(ins))
-	return 8
 }
 
 // JP (HL) 1B
