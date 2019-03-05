@@ -65,10 +65,10 @@ func (g *GameBoy) Step() {
 					g.LD_de_a(g.mainMemory.readN(pc, 1))
 					/* ld [de], a */
 				case 0x20:
-					g.LD_hli_a(g.mainMemory.readN(pc, 1))
+					g.LDI_hl_a(g.mainMemory.readN(pc, 1))
 					/* LDI [HL], A */
 				case 0x30:
-					g.LD_hld_a(g.mainMemory.readN(pc, 1))
+					g.LDD_hl_a(g.mainMemory.readN(pc, 1))
 					/* LDD [HL], A */
 				}
 			case 0x08:
@@ -81,10 +81,10 @@ func (g *GameBoy) Step() {
 					g.LD_a_de(g.mainMemory.readN(pc, 1))
 					/* ld a, [de] */
 				case 0x20:
-					g.LD_a_hli(g.mainMemory.readN(pc, 1))
+					g.LDI_a_hl(g.mainMemory.readN(pc, 1))
 					/* ldi A, [HL] */
 				case 0x30:
-					g.LD_a_hld(g.mainMemory.readN(pc, 1))
+					g.LDD_a_hl(g.mainMemory.readN(pc, 1))
 					/* ldd A, [HL] */
 				}
 			}
