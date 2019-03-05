@@ -136,7 +136,7 @@ func (gb *GameBoy) LD_nn_a(ins []uint8) int {
 }
 
 // Load A <- (HL); HL++
-func (gb *GameBoy) LD_a_hli(ins []uint8) int {
+func (gb *GameBoy) LDI_a_hl(ins []uint8) int {
 	address := gb.get16Reg(HL)
 	value := gb.mainMemory.read(address)
 	gb.set8Reg(A, value)
@@ -146,7 +146,7 @@ func (gb *GameBoy) LD_a_hli(ins []uint8) int {
 }
 
 // Load A <- (HL); HL--
-func (gb *GameBoy) LD_a_hld(ins []uint8) int {
+func (gb *GameBoy) LDD_a_hl(ins []uint8) int {
 	address := gb.get16Reg(HL)
 	value := gb.mainMemory.read(address)
 	gb.set8Reg(A, value)
@@ -156,7 +156,7 @@ func (gb *GameBoy) LD_a_hld(ins []uint8) int {
 }
 
 // Load (HL) <- A; HL++
-func (gb *GameBoy) LD_hli_a(ins []uint8) int {
+func (gb *GameBoy) LDI_hl_a(ins []uint8) int {
 	value := gb.get8Reg(A)
 	address := gb.get16Reg(HL)
 	gb.mainMemory.write(address, value)
@@ -166,7 +166,7 @@ func (gb *GameBoy) LD_hli_a(ins []uint8) int {
 }
 
 // Load (HL) <- A; HL--
-func (gb *GameBoy) LD_hld_a(ins []uint8) int {
+func (gb *GameBoy) LDD_hl_a(ins []uint8) int {
 	value := gb.get8Reg(A)
 	address := gb.get16Reg(HL)
 	gb.mainMemory.write(address, value)
@@ -190,7 +190,7 @@ func (gb *GameBoy) LD_dd_nn(ins []uint8) int {
 func (gb *GameBoy) LD_sp_hl(ins []uint8) int {
 	gb.set16Reg(SP, gb.get16Reg(HL))
 	gb.regs[PC] += uint16(len(ins))
-	return 12
+	return 8
 }
 
 // PUSH qq 1B
