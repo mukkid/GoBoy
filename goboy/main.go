@@ -27,7 +27,11 @@ func main() {
 		mainMemory:       &GBMem{cartridge: &GBROM{}},
 		interruptEnabled: true,
 		image:            image.NewRGBA(image.Rect(0, 0, screenWidth, screenHeight)),
-		gpuClock:         time.NewTicker(108 * time.Microsecond),
+		LCDClock:         time.NewTicker(108 * time.Microsecond),
+		CPUClock:         time.NewTicker(GBClockPeriod),
+		TSC:              0,
+		TSCStart:         0,
+		Paused:           true,
 	}
 
 	// load rom from file
@@ -46,9 +50,11 @@ func main() {
 
 	d := NewDebugger(Gb)
 	/* Initialize SIGINT handler */
-	debuggersSignal = append(debuggersSignal, d)
-	go sigint_handler()
+	go d.SIGINTHandler()
 	signal.Notify(sig_chan, syscall.SIGINT)
+
+	go Gb.LCDLoop()
+	go Gb.TSCLoop()
 
 	debugLoop(d)
 }
