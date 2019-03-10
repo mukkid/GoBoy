@@ -1,13 +1,15 @@
 package main
 
-import "bytes"
-import "fmt"
-import "strings"
-import "os"
-import "bufio"
-import "strconv"
-import . "github.com/SrsBusiness/gobjdump"
-import "regexp"
+import (
+	"bufio"
+	"bytes"
+	"fmt"
+	. "github.com/SrsBusiness/gobjdump"
+	"os"
+	"regexp"
+	"strconv"
+	"strings"
+)
 
 type FunctionFrame struct {
 	addr       uint16 /* Address of frame on stack */
@@ -17,7 +19,6 @@ type FunctionFrame struct {
 type Debugger struct {
 	gb          *GameBoy
 	breakpoints map[uint16]struct{} /* This is how sets work */
-	paused      bool
 	ROMReader   *bytes.Reader
 }
 
@@ -26,12 +27,23 @@ func isBreakpoint(m map[uint16]struct{}, breakpoint uint16) bool {
 	return isMember
 }
 
+func (d *Debugger) pause() {
+	/* Stop TSCLoop */
+	d.gb.Paused = true
+}
+
+func (d *Debugger) resume() {
+	/* restart TSCLoop */
+	d.gb.Paused = false
+}
+
 func (d *Debugger) cont() {
-	d.paused = false
+	d.resume()
 	d.next()
-	for !isBreakpoint(d.breakpoints, d.gb.get16Reg(PC)) && !d.paused {
+	for !isBreakpoint(d.breakpoints, d.gb.get16Reg(PC)) && !d.gb.Paused {
 		d.next()
 	}
+	d.pause()
 }
 
 func (d *Debugger) addBreakpoint(addr uint16) {
@@ -43,7 +55,6 @@ func (d *Debugger) deleteBreakpoint(addr uint16) {
 }
 
 func (d *Debugger) next() {
-	/* Probably don't care about d.paused here */
 	d.gb.handleInterrupt()
 	d.gb.Step()
 }
@@ -114,6 +125,8 @@ func (d *Debugger) print(id string) {
 		fmt.Printf("0x%04x\n", d.gb.get8Reg(regNames8[id]))
 	case "regs", "registers":
 		d.printAllRegs()
+	case "tsc":
+		fmt.Printf("%d\n", d.gb.TSC)
 	}
 }
 
@@ -167,8 +180,9 @@ func debugLoop(d *Debugger) {
 			case "c", "continue":
 				d.cont()
 			case "n", "next":
-				d.gb.handleInterrupt()
-				d.gb.Step()
+				d.resume()
+				d.next()
+				d.pause()
 			case "q", "quit":
 				return
 			}
@@ -234,20 +248,15 @@ func NewDebugger(gb *GameBoy) *Debugger {
 	return &Debugger{
 		gb:          gb,
 		breakpoints: make(map[uint16]struct{}),
-		paused:      true,
 		ROMReader:   Gb.mainMemory.cartridge.reader(),
 	}
 }
 
 var sig_chan = make(chan os.Signal, 1)
 
-var debuggersSignal []*Debugger
-
-func sigint_handler() {
+func (d *Debugger) SIGINTHandler() {
 	for {
 		<-sig_chan
-		for _, d := range debuggersSignal {
-			d.paused = true
-		}
+		d.pause()
 	}
 }

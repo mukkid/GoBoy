@@ -6,13 +6,25 @@ import "time"
 //  Frances was here!
 //      Where is Frances?
 
+const (
+	/*
+	 * 4.194304 MHz. Different for SGB, GBC
+	 * 1 / 4194304Hz * 1000 * 1000 * 1000ns = 238.418ns per clock, 953.674ns per machine clock
+	 */
+	GBClockPeriod = 953
+)
+
 type GameBoy struct {
 	rom              *GBROM // the ROM object
 	mainMemory       *GBMem // GB main memory
 	*Register               // register state
 	interruptEnabled bool
 	image            *image.RGBA // image to be displayed
-	gpuClock         *time.Ticker
+	LCDClock         *time.Ticker
+	CPUClock         *time.Ticker
+	TSC              uint64 /* like TSC on x86 */
+	TSCStart         uint64 /* starting TSC of next instruction */
+	Paused           bool
 }
 
 type Reg8ID int
