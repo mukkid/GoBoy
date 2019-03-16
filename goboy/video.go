@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"github.com/veandco/go-sdl2/sdl"
 	"image"
 	"image/color"
 )
@@ -80,4 +82,16 @@ func drawBackground(image *image.RGBA, mem *GBMem) *image.RGBA {
 		}
 	}
 	return image
+}
+
+func initVideo() {
+	window, err := sdl.CreateWindow("GoBoy", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
+		visibleWidth, visibleHeight, sdl.WINDOW_SHOWN)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer window.Destroy()
+
+	sdl.Delay(2000)
 }

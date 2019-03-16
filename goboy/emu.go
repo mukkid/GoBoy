@@ -542,7 +542,6 @@ func (Gb *GameBoy) LCDLoop() {
 				STAT := Gb.mainMemory.ioregs[0x41]
 				STAT |= 0x40
 			}
-
 		}
 	}
 }

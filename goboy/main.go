@@ -53,6 +53,7 @@ func main() {
 	go d.SIGINTHandler()
 	signal.Notify(sig_chan, syscall.SIGINT)
 
+	go initVideo()
 	go Gb.LCDLoop()
 	go Gb.TSCLoop()
 
