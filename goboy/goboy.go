@@ -1,6 +1,5 @@
 package main
 
-import "image"
 import "time"
 
 //  Frances was here!
@@ -19,7 +18,7 @@ type GameBoy struct {
 	mainMemory       *GBMem // GB main memory
 	*Register               // register state
 	interruptEnabled bool
-	image            *image.RGBA // image to be displayed
+	pixels           []byte
 	LCDClock         *time.Ticker
 	CPUClock         *time.Ticker
 	TSC              uint64 /* like TSC on x86 */

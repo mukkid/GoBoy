@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"image"
 	"os/signal"
 	"syscall"
 	"time"
@@ -26,7 +25,7 @@ func main() {
 		Register:         &Register{},
 		mainMemory:       &GBMem{cartridge: &GBROM{}},
 		interruptEnabled: true,
-		image:            image.NewRGBA(image.Rect(0, 0, screenWidth, screenHeight)),
+		pixels:           make([]byte, visibleWidth*visibleHeight*4),
 		LCDClock:         time.NewTicker(108 * time.Microsecond),
 		CPUClock:         time.NewTicker(GBClockPeriod),
 		TSC:              0,
@@ -53,7 +52,6 @@ func main() {
 	go d.SIGINTHandler()
 	signal.Notify(sig_chan, syscall.SIGINT)
 
-	go initVideo()
 	go Gb.LCDLoop()
 	go Gb.TSCLoop()
 

@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"github.com/veandco/go-sdl2/sdl"
+)
+
 func (g *GameBoy) Step() {
 	/* 3 is the max length of an instruction (I think) */
 	pc := g.regs[PC]
@@ -522,6 +527,29 @@ func (g *GameBoy) interruptJumpHelper(target uint16) {
 
 /* TODO: investigate good ways to test these Ticker loops */
 func (Gb *GameBoy) LCDLoop() {
+	// Init window
+	window, err := sdl.CreateWindow("GoBoy", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
+		visibleWidth, visibleHeight, sdl.WINDOW_SHOWN)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer window.Destroy()
+
+	renderer, err := sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer renderer.Destroy()
+
+	tex, err := renderer.CreateTexture(sdl.PIXELFORMAT_ARGB8888, sdl.TEXTUREACCESS_STREAMING, visibleWidth, visibleHeight)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer tex.Destroy()
+
 	for _ = range Gb.LCDClock.C {
 		// NOTE: Check debugger pause flag here
 		if !Gb.Paused {
@@ -541,6 +569,11 @@ func (Gb *GameBoy) LCDLoop() {
 				/* Set bit 6 in STAT */
 				STAT := Gb.mainMemory.ioregs[0x41]
 				STAT |= 0x40
+			}
+			if LY == 0x90 {
+				drawBackground(Gb.pixels, Gb.mainMemory)
+				tex.Update(nil, Gb.pixels, visibleWidth*4)
+				renderer.Present()
 			}
 		}
 	}
