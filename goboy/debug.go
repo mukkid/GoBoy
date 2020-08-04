@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"io"
 )
 
 type FunctionFrame struct {
@@ -162,12 +163,16 @@ func (d *Debugger) printInstructions(addr, numInstructions uint16) {
 
 var print_memory_regex = regexp.MustCompile(`^x/([0-9]*)([xi]*)$`)
 
-func debugLoop(d *Debugger) {
+func (d *Debugger) debugLoop() {
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		/* TODO: handle error */
 		d.prompt()
-		cmd, _ := reader.ReadString('\n')
+		cmd, err := reader.ReadString('\n')
+		if err == io.EOF {
+			d.gb.Halt = true
+			break
+		}
 		tokens := strings.Fields(strings.ToLower(cmd))
 		if len(tokens) == 0 {
 			continue
@@ -248,13 +253,13 @@ func NewDebugger(gb *GameBoy) *Debugger {
 	return &Debugger{
 		gb:          gb,
 		breakpoints: make(map[uint16]struct{}),
-		ROMReader:   Gb.mainMemory.cartridge.reader(),
+		ROMReader:   gb.mainMemory.cartridge.reader(),
 	}
 }
 
 var sig_chan = make(chan os.Signal, 1)
 
-func (d *Debugger) SIGINTHandler() {
+func (d *Debugger) SIGINTListener() {
 	for {
 		<-sig_chan
 		d.pause()

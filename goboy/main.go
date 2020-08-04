@@ -7,9 +7,10 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	"github.com/veandco/go-sdl2/sdl"
 )
 
-// 256x256 is written to in total but only 160x144 is visible.
+/* 256x256 is written to in total but only 160x144 is visible. */
 const (
 	screenWidth   = 256
 	screenHeight  = 256
@@ -17,12 +18,14 @@ const (
 	visibleHeight = 144
 )
 
-// global emulation state
-var Gb *GameBoy
-
 func main() {
-	// init gameboy
-	Gb = &GameBoy{
+	/* Initialize SDL */
+	err := sdl.Init(sdl.INIT_EVERYTHING)
+	if err != nil {
+		return
+	}
+	/* init gameboy */
+	Gb := &GameBoy{
 		Register:         &Register{},
 		mainMemory:       &GBMem{cartridge: &GBROM{}},
 		interruptEnabled: true,
@@ -34,7 +37,7 @@ func main() {
 		Paused:           true,
 	}
 
-	// load rom from file
+	/* load rom from file */
 	rom_path := flag.String("rom", "", "rom image to load")
 	flag.Parse()
 	if *rom_path != "" {
@@ -42,7 +45,7 @@ func main() {
 		fmt.Printf("Loaded %s\n", *rom_path)
 	}
 
-	// Initialize joypad values
+	/* Initialize joypad values */
 	Gb.mainMemory.ioregs[0] = 0xff
 
 	/* Initialize PC to 0x100 */
@@ -50,11 +53,16 @@ func main() {
 
 	d := NewDebugger(Gb)
 	/* Initialize SIGINT handler */
-	go d.SIGINTHandler()
+	go d.SIGINTListener()
 	signal.Notify(sig_chan, syscall.SIGINT)
 
 	go Gb.LCDLoop()
 	go Gb.TSCLoop()
-
-	debugLoop(d)
+	go d.debugLoop()
+	g, err := newGooey(d)
+	if err != nil {
+		return
+	}
+	/* Main SDL loop */
+	err = g.eventLoop()
 }

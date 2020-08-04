@@ -25,6 +25,7 @@ type GameBoy struct {
 	TSC              uint64 /* like TSC on x86 */
 	TSCStart         uint64 /* starting TSC of next instruction */
 	Paused           bool
+	Halt		 bool
 }
 
 type Reg8ID int
