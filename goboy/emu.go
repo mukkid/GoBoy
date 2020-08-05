@@ -1,5 +1,9 @@
 package main
 
+import (
+	"time"
+)
+
 func (g *GameBoy) Step() {
 	/* 3 is the max length of an instruction (I think) */
 	pc := g.regs[PC]
@@ -464,7 +468,7 @@ func (g *GameBoy) Step() {
 			/* rst p */
 		}
 	}
-
+	/* TODO: handle TSC overflow */
 	g.TSCStart += uint64(cycles)
 
 	/*
@@ -474,6 +478,7 @@ func (g *GameBoy) Step() {
 	 * with SIGINT, otherwise this may infinitely loop.
 	 */
 	for g.TSC < g.TSCStart && !g.Paused {
+		time.Sleep(GBClockPeriod)
 	}
 }
 

@@ -46,7 +46,7 @@ func newGooey(d *Debugger) (*Gooey, error) {
 	}
 	//g.renderer.SetDrawColor(0xff, 0xff, 0xff, 0xff)
 	g.texture, err = g.renderer.CreateTexture(
-		sdl.PIXELFORMAT_RGB888,
+		sdl.PIXELFORMAT_ARGB8888,
 		sdl.TEXTUREACCESS_STREAMING,
 		screenWidth,
 		screenHeight)
@@ -105,6 +105,7 @@ func (g *Gooey) eventLoop() error {
 			fmt.Println("oh no")
 			return err
 		}
+
 		/* Handle events */
 		event := sdl.PollEvent()
 		if event != nil && event.GetType() == sdl.QUIT {
