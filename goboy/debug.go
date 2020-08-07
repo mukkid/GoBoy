@@ -17,15 +17,31 @@ type FunctionFrame struct {
 	returnAddr uint16
 }
 
+type Watchpoint struct {
+	start uint16 /* inclusive */
+	end   uint16 /* exclusive */
+}
+
 type Debugger struct {
 	gb          *GameBoy
 	breakpoints map[uint16]struct{} /* This is how sets work */
 	ROMReader   *bytes.Reader
+	watchpoints map[Watchpoint]struct{}
 }
 
 func isBreakpoint(m map[uint16]struct{}, breakpoint uint16) bool {
 	_, isMember := m[breakpoint]
 	return isMember
+}
+
+func (d *Debugger) getMatchingWatchpoint() *Watchpoint {
+	addr := d.gb.mainMemory.lastWrite
+	for w, _ := range d.watchpoints {
+		if addr >= w.start && addr < w.end {
+			return &w
+		}
+	}
+	return nil
 }
 
 func (d *Debugger) pause() {
@@ -40,11 +56,44 @@ func (d *Debugger) resume() {
 
 func (d *Debugger) cont() {
 	d.resume()
-	d.next()
-	for !isBreakpoint(d.breakpoints, d.gb.get16Reg(PC)) && !d.gb.Paused {
+	for {
 		d.next()
+		if isBreakpoint(d.breakpoints, d.gb.get16Reg(PC)) {
+			fmt.Printf("Breakpoint: 0x%04x\n", d.gb.get16Reg(PC))
+			break
+		}
+		watchpoint := d.getMatchingWatchpoint()
+		if watchpoint != nil {
+			fmt.Printf(
+				"Watchpoint: 0x%04x inside of [0x%04x, 0x%04x)\n",
+				d.gb.mainMemory.lastWrite,
+				watchpoint.start,
+				watchpoint.end,
+			)
+			break
+		}
+		if d.gb.Paused {
+			fmt.Printf("Paused\n")
+			break
+		}
 	}
 	d.pause()
+}
+
+func (d *Debugger) addWatchpoint(start, end uint16) {
+	watchpoint := Watchpoint{
+		start : start,
+		end   : end,
+	}
+	d.watchpoints[watchpoint] = struct{}{}
+}
+
+func (d *Debugger) deleteWatchpoint(start, end uint16) {
+	watchpoint := Watchpoint{
+		start : start,
+		end   : end,
+	}
+	delete(d.watchpoints, watchpoint)
 }
 
 func (d *Debugger) addBreakpoint(addr uint16) {
@@ -189,6 +238,7 @@ func (d *Debugger) debugLoop() {
 				d.next()
 				d.pause()
 			case "q", "quit":
+				d.gb.Halt = true
 				return
 			}
 		case 2:
@@ -232,7 +282,11 @@ func (d *Debugger) debugLoop() {
 					}
 					var num uint64 = 1
 					if options[1] != "" {
-						num, _ = strconv.ParseUint(options[1], 0, 16)
+						num, err = strconv.ParseUint(options[1], 0, 16)
+						if err != nil {
+							fmt.Printf("Invalid number of bytes: %s\n", options[1])
+							break
+						}
 					}
 					format := options[2]
 					switch format {
@@ -245,6 +299,21 @@ func (d *Debugger) debugLoop() {
 					}
 				}
 			}
+		case 3:
+			switch tokens[0] {
+			case "watchpoint":
+				start, err := strconv.ParseUint(tokens[1], 0, 16)
+				if err != nil {
+					fmt.Printf("Invalid address: %s\n", tokens[1])
+					break
+				}
+				end, err := strconv.ParseUint(tokens[2], 0, 16)
+				if err != nil {
+					fmt.Printf("Invalid address: %s\n", tokens[2])
+					break
+				}
+				d.addWatchpoint(uint16(start), uint16(end))
+			}
 		}
 	}
 }
@@ -254,6 +323,7 @@ func NewDebugger(gb *GameBoy) *Debugger {
 		gb:          gb,
 		breakpoints: make(map[uint16]struct{}),
 		ROMReader:   gb.mainMemory.cartridge.reader(),
+		watchpoints: make(map[Watchpoint]struct{}),
 	}
 }
 

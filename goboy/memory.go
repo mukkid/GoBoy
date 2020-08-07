@@ -1,6 +1,8 @@
 package main
 
-import "bytes"
+import (
+	"bytes"
+)
 
 type GBMem struct {
 	/* Work RAM at 0xc000 - 0xd000 */
@@ -11,6 +13,10 @@ type GBMem struct {
 	ioregs [127]uint8
 	/* ROM bank 0, nonswitchable - I believe this means this bank is static */
 	cartridge GBCartridge
+
+	/* Purely for debugging */
+	lastRead  uint16
+	lastWrite uint16
 }
 
 /* Cartridge type specified at 0x0147 */
@@ -61,6 +67,7 @@ const (
  * Or 0x8000 < n bytes
  */
 func (m *GBMem) read(addr uint16) uint8 {
+	m.lastRead = addr
 	if addr >= 0x0000 && addr < 0x8000 {
 		return m.cartridge.readROM(addr)
 	} else if addr >= 0x8000 && addr < 0xa000 {
@@ -100,6 +107,7 @@ func (m *GBMem) read(addr uint16) uint8 {
 }
 
 func (m *GBMem) write(addr uint16, value uint8) {
+	m.lastWrite = addr
 	if addr >= 0x0000 && addr < 0x8000 {
 		/*
 		 * Both non-switchable and switchable ROM Bank.

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 	"image"
+	//"os"
 )
 
 const (
@@ -40,7 +41,7 @@ func newGooey(d *Debugger) (*Gooey, error) {
 	if err != nil {
 		return nil, err
 	}
-	g.renderer, err = sdl.CreateRenderer(g.window, -1, sdl.RENDERER_SOFTWARE)
+	g.renderer, err = sdl.CreateRenderer(g.window, -1, sdl.RENDERER_ACCELERATED)
 	if err != nil {
 		return nil, err
 	}
@@ -82,8 +83,6 @@ func (g *Gooey) renderUpdate() error {
 }
 
 func (g *Gooey) eventLoop() error {
-	var index uint32 = 0
-	var fill uint8 = 0xff
 	bgImage := image.NewRGBA(image.Rect(0, 0, 256, 256))
 	for _ = range g.clock.C {
 		if g.debugger.gb.Halt {
@@ -99,6 +98,10 @@ func (g *Gooey) eventLoop() error {
 		drawBackground(bgImage, g.debugger.gb.mainMemory)
 		copy(pixels, bgImage.Pix)
 
+		//file, _ := os.OpenFile("pixels", os.O_RDWR|os.O_CREATE, 0755)
+		//file.Write(pixels)
+		//file.Close()
+
 		g.unlockTexture()
 		err = g.renderUpdate()
 		if err != nil {
@@ -111,11 +114,6 @@ func (g *Gooey) eventLoop() error {
 		if event != nil && event.GetType() == sdl.QUIT {
 			g.quit = true
 			break
-		}
-		index++
-		if index == screenWidth * screenHeight {
-			index = 0
-			fill ^= 0xff
 		}
 	}
 	sdl.Quit()
